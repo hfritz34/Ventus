@@ -45,5 +45,11 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Ventus needs camera access to verify you're awake by taking an outdoor selfie</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Ventus needs location access to verify your outdoor selfie</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Ventus needs location access to verify your outdoor selfie</string>
 </dict>
 </plist>

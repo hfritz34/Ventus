@@ -46,6 +46,9 @@ dependencies:
   logger: ^2.0.2
   uuid: ^4.2.1
 
+  # Permissions
+  permission_handler: ^11.1.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
