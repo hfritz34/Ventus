@@ -2,6 +2,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:logger/logger.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest_all.dart' as tz;
+import 'package:app/core/services/alarm_trigger_service.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -37,6 +38,9 @@ class NotificationService {
 
   void _onNotificationTapped(NotificationResponse response) {
     _logger.i('Notification tapped: ${response.id}');
+    if (response.payload != null) {
+      AlarmTriggerService().handleAlarmTrigger(response.payload!);
+    }
   }
 
   Future<void> scheduleAlarm({
@@ -44,13 +48,14 @@ class NotificationService {
     required String title,
     required String body,
     required DateTime scheduledTime,
+    String? payload,
   }) async {
     await _notifications.zonedSchedule(
       id,
       title,
       body,
       tz.TZDateTime.from(scheduledTime, tz.local),
-      const NotificationDetails(
+      NotificationDetails(
         android: AndroidNotificationDetails(
           'alarm_channel',
           'Alarms',
@@ -59,8 +64,9 @@ class NotificationService {
           priority: Priority.high,
           playSound: true,
           enableVibration: true,
+          fullScreenIntent: true,
         ),
-        iOS: DarwinNotificationDetails(
+        iOS: const DarwinNotificationDetails(
           presentAlert: true,
           presentBadge: true,
           presentSound: true,
@@ -69,6 +75,7 @@ class NotificationService {
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
+      payload: payload,
     );
 
     _logger.i('Alarm scheduled for $scheduledTime with id $id');

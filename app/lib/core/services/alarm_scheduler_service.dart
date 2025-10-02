@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:logger/logger.dart';
 import 'package:app/features/alarm/models/alarm.dart';
 import 'package:app/core/services/notification_service.dart';
@@ -12,6 +13,13 @@ class AlarmSchedulerService {
 
   int _generateNotificationId(String alarmId) {
     return alarmId.hashCode.abs() % 2147483647;
+  }
+
+  String _createPayload(Alarm alarm) {
+    return jsonEncode({
+      'alarmId': alarm.id,
+      'graceMinutes': alarm.graceWindowMinutes,
+    });
   }
 
   DateTime _getNextAlarmTime(Alarm alarm) {
@@ -51,6 +59,7 @@ class AlarmSchedulerService {
       title: 'Wake up!',
       body: 'Time to take your outdoor selfie. You have ${alarm.graceWindowMinutes} minutes.',
       scheduledTime: scheduledTime,
+      payload: _createPayload(alarm),
     );
 
     _logger.i('Scheduled alarm ${alarm.id} for $scheduledTime');
