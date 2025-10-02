@@ -3,6 +3,7 @@ import 'package:app/features/alarm/screens/alarm_list_screen.dart';
 import 'package:app/features/alarm/screens/add_alarm_screen.dart';
 import 'package:app/features/alarm/screens/edit_alarm_screen.dart';
 import 'package:app/features/alarm/models/alarm.dart';
+import 'package:app/features/camera/screens/camera_capture_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/',
@@ -24,6 +25,11 @@ final appRouter = GoRouter(
         final alarm = state.extra as Alarm;
         return EditAlarmScreen(alarm: alarm);
       },
+    ),
+    GoRoute(
+      path: '/camera',
+      name: 'camera',
+      builder: (context, state) => const CameraCaptureScreen(),
     ),
   ],
 );
