@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:app/features/alarm/models/alarm.dart';
 import 'package:app/features/alarm/providers/alarm_provider.dart';
 import 'package:app/core/services/storage_service.dart';
+import 'package:app/core/services/alarm_scheduler_service.dart';
 
 class EditAlarmScreen extends ConsumerStatefulWidget {
   final Alarm alarm;
@@ -79,6 +80,7 @@ class _EditAlarmScreenState extends ConsumerState<EditAlarmScreen> {
 
     ref.read(alarmProvider.notifier).updateAlarm(updatedAlarm);
     await StorageService().saveAlarm(updatedAlarm);
+    await AlarmSchedulerService().rescheduleAlarm(updatedAlarm);
 
     if (mounted) context.pop();
   }

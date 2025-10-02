@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:app/features/alarm/providers/alarm_provider.dart';
 import 'package:app/core/services/storage_service.dart';
+import 'package:app/core/services/alarm_scheduler_service.dart';
 
 class AlarmListScreen extends ConsumerStatefulWidget {
   const AlarmListScreen({super.key});
@@ -37,6 +38,8 @@ class _AlarmListScreenState extends ConsumerState<AlarmListScreen> {
   }
 
   Future<void> _deleteAlarm(String alarmId) async {
+    final alarm = ref.read(alarmProvider).firstWhere((a) => a.id == alarmId);
+    await AlarmSchedulerService().cancelAlarm(alarm);
     ref.read(alarmProvider.notifier).deleteAlarm(alarmId);
     await StorageService().deleteAlarm(alarmId);
   }
@@ -45,6 +48,7 @@ class _AlarmListScreenState extends ConsumerState<AlarmListScreen> {
     ref.read(alarmProvider.notifier).toggleAlarm(alarmId);
     final alarm = ref.read(alarmProvider).firstWhere((a) => a.id == alarmId);
     await StorageService().saveAlarm(alarm);
+    await AlarmSchedulerService().rescheduleAlarm(alarm);
   }
 
   @override

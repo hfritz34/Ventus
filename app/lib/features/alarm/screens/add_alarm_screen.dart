@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:app/features/alarm/models/alarm.dart';
 import 'package:app/features/alarm/providers/alarm_provider.dart';
 import 'package:app/core/services/storage_service.dart';
+import 'package:app/core/services/alarm_scheduler_service.dart';
 
 class AddAlarmScreen extends ConsumerStatefulWidget {
   const AddAlarmScreen({super.key});
@@ -60,6 +61,7 @@ class _AddAlarmScreenState extends ConsumerState<AddAlarmScreen> {
 
     ref.read(alarmProvider.notifier).addAlarm(alarm);
     await StorageService().saveAlarm(alarm);
+    await AlarmSchedulerService().scheduleAlarm(alarm);
 
     if (mounted) context.pop();
   }
