@@ -17,12 +17,10 @@ class _AlarmListScreenState extends ConsumerState<AlarmListScreen> {
   @override
   void initState() {
     super.initState();
-    _loadAlarms();
-  }
-
-  void _loadAlarms() {
-    final alarms = StorageService().getAllAlarms();
-    ref.read(alarmProvider.notifier).loadAlarms(alarms);
+    Future(() {
+      final alarms = StorageService().getAllAlarms();
+      ref.read(alarmProvider.notifier).loadAlarms(alarms);
+    });
   }
 
   String _formatTime(DateTime time) {
