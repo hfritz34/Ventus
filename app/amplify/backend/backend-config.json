@@ -1,0 +1,103 @@
+{
+  "api": {
+    "ventusapi": {
+      "dependsOn": [
+        {
+          "attributes": [
+            "Name",
+            "Arn"
+          ],
+          "category": "function",
+          "resourceName": "verifyPhoto"
+        }
+      ],
+      "providerPlugin": "awscloudformation",
+      "service": "API Gateway"
+    }
+  },
+  "auth": {
+    "ventusf074c077": {
+      "customAuth": false,
+      "dependsOn": [],
+      "frontendAuthConfig": {
+        "mfaConfiguration": "OFF",
+        "mfaTypes": [
+          "SMS"
+        ],
+        "passwordProtectionSettings": {
+          "passwordPolicyCharacters": [],
+          "passwordPolicyMinLength": 8
+        },
+        "signupAttributes": [
+          "EMAIL"
+        ],
+        "socialProviders": [],
+        "usernameAttributes": [
+          "EMAIL"
+        ],
+        "verificationMechanisms": [
+          "EMAIL"
+        ]
+      },
+      "providerPlugin": "awscloudformation",
+      "service": "Cognito"
+    }
+  },
+  "function": {
+    "verifyPhoto": {
+      "build": true,
+      "dependsOn": [],
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    }
+  },
+  "parameters": {
+    "AMPLIFY_function_verifyPhoto_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "verifyPhoto"
+        }
+      ]
+    },
+    "AMPLIFY_function_verifyPhoto_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "verifyPhoto"
+        }
+      ]
+    },
+    "AMPLIFY_function_verifyPhoto_twilioAccountSid": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "verifyPhoto"
+        }
+      ]
+    },
+    "AMPLIFY_function_verifyPhoto_twilioAuthToken": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "verifyPhoto"
+        }
+      ]
+    },
+    "AMPLIFY_function_verifyPhoto_twilioPhoneNumber": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "verifyPhoto"
+        }
+      ]
+    }
+  },
+  "storage": {
+    "ventusPhotos": {
+      "dependsOn": [],
+      "providerPlugin": "awscloudformation",
+      "service": "S3"
+    }
+  }
+}

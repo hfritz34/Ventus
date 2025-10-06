@@ -7,6 +7,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:app/features/camera/services/camera_service.dart';
 import 'package:app/core/services/permission_service.dart';
 import 'package:app/core/services/alarm_trigger_service.dart';
+import 'package:app/core/services/photo_verification_service.dart';
+import 'package:app/core/services/storage_service.dart';
 
 class CameraCaptureScreen extends StatefulWidget {
   const CameraCaptureScreen({super.key});
@@ -97,27 +99,90 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen> {
     }
 
     try {
+      // Show loading
+      if (mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+      }
+
       final image = await _controller!.takePicture();
 
       final directory = await getApplicationDocumentsDirectory();
       final imagePath = '${directory.path}/${DateTime.now().millisecondsSinceEpoch}.jpg';
       await File(image.path).copy(imagePath);
 
-      AlarmTriggerService().clearActiveAlarm();
+      // Get alarm details for verification
+      final alarmId = AlarmTriggerService().activeAlarmId;
+      if (alarmId == null) {
+        throw Exception('No active alarm found');
+      }
 
+      // Get alarm from storage to get contact info
+      final alarm = StorageService().getAlarm(alarmId);
+      if (alarm == null) {
+        throw Exception('Alarm not found');
+      }
+
+      // Verify photo with Rekognition
+      final verificationResult = await PhotoVerificationService().verifyPhoto(
+        photoPath: imagePath,
+        contactPhone: alarm.accountabilityContactPhone ?? '',
+        userName: 'User', // TODO: Get from Cognito user profile
+      );
+
+      // Hide loading dialog
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Photo captured! Alarm completed successfully.'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        context.pop(imagePath);
+        Navigator.of(context).pop();
+      }
+
+      if (verificationResult['isOutdoor'] == true) {
+        // Success - outdoor photo verified!
+        AlarmTriggerService().clearActiveAlarm();
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(verificationResult['message'] ?? 'Photo verified!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          context.pop(imagePath);
+        }
+      } else {
+        // Failed - not outdoor or verification error
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(verificationResult['message'] ?? 'Photo not verified'),
+              backgroundColor: Colors.orange,
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        }
       }
     } catch (e) {
+      // Hide loading dialog if still showing
+      if (mounted && Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+
       setState(() {
         _error = 'Failed to capture photo: $e';
       });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 

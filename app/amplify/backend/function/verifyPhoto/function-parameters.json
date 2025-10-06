@@ -1,0 +1,18 @@
+{
+  "lambdaLayers": [],
+  "environmentVariableList": [
+    {
+      "cloudFormationParameterName": "twilioAccountSid",
+      "environmentVariableName": "TWILIO_ACCOUNT_SID"
+    },
+    {
+      "cloudFormationParameterName": "twilioAuthToken",
+      "environmentVariableName": "TWILIO_AUTH_TOKEN"
+    },
+    {
+      "cloudFormationParameterName": "twilioPhoneNumber",
+      "environmentVariableName": "TWILIO_PHONE_NUMBER"
+    }
+  ],
+  "permissions": {}
+}

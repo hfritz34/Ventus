@@ -1,0 +1,14 @@
+{
+  "resourceName": "ventusPhotos",
+  "policyUUID": "1b316372",
+  "bucketName": "ventus-photos",
+  "storageAccess": "auth",
+  "guestAccess": [],
+  "authAccess": [
+    "CREATE_AND_UPDATE",
+    "READ",
+    "DELETE"
+  ],
+  "triggerFunction": "NONE",
+  "groupAccess": {}
+}
