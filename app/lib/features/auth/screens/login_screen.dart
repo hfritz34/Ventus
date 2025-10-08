@@ -63,14 +63,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     'assets/images/ventus_transparent.png',
                     height: 120,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
                   Text(
                     'Ventus',
                     style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
                   Text(
                     'Wake up accountability',
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(

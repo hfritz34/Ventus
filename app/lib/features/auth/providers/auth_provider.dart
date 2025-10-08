@@ -65,7 +65,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  Future<void> signUp({
+  Future<bool> signUp({
     required String email,
     required String password,
     required String username,
@@ -83,17 +83,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
         ),
       );
 
-      if (result.isSignUpComplete) {
-        state = state.copyWith(isLoading: false);
-      } else {
-        state = state.copyWith(
-          isLoading: false,
-          error: 'Signup incomplete. Please verify your email.',
-        );
-      }
+      state = state.copyWith(isLoading: false);
+      return true;
     } on AuthException catch (e) {
       _logger.e('Sign up error: ${e.message}');
       state = state.copyWith(isLoading: false, error: e.message);
+      return false;
     }
   }
 
