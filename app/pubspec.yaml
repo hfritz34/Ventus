@@ -68,6 +68,14 @@ dependencies:
   amplify_storage_s3: ^2.0.0
   amplify_api: ^2.0.0
 
+  # Image caching and viewing
+  cached_network_image: ^3.3.1
+  photo_view: ^0.14.0
+
+  # Calendar and charts
+  table_calendar: ^3.0.9
+  fl_chart: ^0.68.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

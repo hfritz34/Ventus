@@ -11,6 +11,8 @@ import 'package:app/core/services/alarm_trigger_service.dart';
 import 'package:app/core/services/photo_verification_service.dart';
 import 'package:app/core/services/storage_service.dart';
 import 'package:app/features/auth/providers/auth_provider.dart';
+import 'package:app/features/streak/models/streak_entry.dart';
+import 'package:app/features/streak/providers/streak_provider.dart';
 
 class CameraCaptureScreen extends ConsumerStatefulWidget {
   const CameraCaptureScreen({super.key});
@@ -63,6 +65,17 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen> {
 
       final authState = ref.read(authProvider);
       final userName = authState.username ?? 'User';
+      final userId = authState.userId ?? '';
+
+      // Save failed streak entry
+      final failedEntry = StreakEntry(
+        userId: userId,
+        date: DateTime.now(),
+        success: false,
+        photoUrl: null,
+        alarmId: alarmId,
+      );
+      await ref.read(streakProvider.notifier).addStreakEntry(failedEntry);
 
       // Call Lambda to send accountability message
       await PhotoVerificationService().verifyPhoto(
@@ -170,6 +183,19 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen> {
 
       if (verificationResult['isOutdoor'] == true) {
         // Success - outdoor photo verified!
+        // Save successful streak entry
+        final authState = ref.read(authProvider);
+        final userId = authState.userId ?? '';
+
+        final successEntry = StreakEntry(
+          userId: userId,
+          date: DateTime.now(),
+          success: true,
+          photoUrl: imagePath,
+          alarmId: alarmId,
+        );
+        await ref.read(streakProvider.notifier).addStreakEntry(successEntry);
+
         AlarmTriggerService().clearActiveAlarm();
 
         if (mounted) {
@@ -183,6 +209,19 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen> {
         }
       } else {
         // Failed - not outdoor or verification error
+        // Save failed streak entry
+        final authState = ref.read(authProvider);
+        final userId = authState.userId ?? '';
+
+        final failedEntry = StreakEntry(
+          userId: userId,
+          date: DateTime.now(),
+          success: false,
+          photoUrl: null,
+          alarmId: alarmId,
+        );
+        await ref.read(streakProvider.notifier).addStreakEntry(failedEntry);
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

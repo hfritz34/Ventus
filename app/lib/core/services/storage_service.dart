@@ -1,6 +1,7 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:logger/logger.dart';
 import 'package:app/features/alarm/models/alarm.dart';
+import 'package:app/features/streak/models/streak_entry.dart';
 
 class StorageService {
   static final StorageService _instance = StorageService._internal();
@@ -9,11 +10,14 @@ class StorageService {
 
   final Logger _logger = Logger();
   static const String _alarmBoxName = 'alarms';
+  static const String _streakBoxName = 'streak_entries';
 
   Future<void> initialize() async {
     await Hive.initFlutter();
     Hive.registerAdapter(AlarmAdapter());
+    Hive.registerAdapter(StreakEntryAdapter());
     await Hive.openBox<Alarm>(_alarmBoxName);
+    await Hive.openBox<StreakEntry>(_streakBoxName);
     _logger.i('Storage service initialized');
   }
 
