@@ -1,39 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:app/features/streak/providers/streak_provider.dart';
 import 'package:app/features/streak/models/streak_entry.dart';
 
-class StreakCalendar extends ConsumerWidget {
-  final DateTime focusedMonth;
+class StreakCalendar extends ConsumerStatefulWidget {
   final Function(DateTime) onDayTapped;
 
   const StreakCalendar({
     super.key,
-    required this.focusedMonth,
     required this.onDayTapped,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<StreakCalendar> createState() => _StreakCalendarState();
+}
+
+class _StreakCalendarState extends ConsumerState<StreakCalendar> {
+  int _selectedYear = DateTime.now().year;
+
+  @override
+  Widget build(BuildContext context) {
     final streaks = ref.watch(streakProvider);
-
-    // Get start of month (find first Monday before or on the 1st)
-    final firstDayOfMonth = DateTime(focusedMonth.year, focusedMonth.month, 1);
-    final lastDayOfMonth = DateTime(focusedMonth.year, focusedMonth.month + 1, 0);
-
-    // Calculate grid start (previous Monday)
-    int daysToSubtract = firstDayOfMonth.weekday - 1; // Monday = 1
-    final gridStart = firstDayOfMonth.subtract(Duration(days: daysToSubtract));
-
-    // Calculate grid end (next Sunday)
-    int daysToAdd = 7 - lastDayOfMonth.weekday; // Sunday = 7
-    final gridEnd = lastDayOfMonth.add(Duration(days: daysToAdd));
-
-    // Generate all days in grid
-    final totalDays = gridEnd.difference(gridStart).inDays + 1;
-    final days = List.generate(totalDays, (index) {
-      return gridStart.add(Duration(days: index));
-    });
+    final totalContributions = streaks.where((s) => s.success).length;
 
     // Create a map of dates to streak entries for quick lookup
     final streakMap = <DateTime, StreakEntry>{};
@@ -42,106 +31,292 @@ class StreakCalendar extends ConsumerWidget {
       streakMap[normalizedDate] = entry;
     }
 
+    // Calculate the start date (first day of the year, but start on Sunday/Monday)
+    final yearStart = DateTime(_selectedYear, 1, 1);
+    final yearEnd = DateTime(_selectedYear, 12, 31);
+
+    // Find the first Sunday before or on yearStart
+    int daysToSubtract = yearStart.weekday % 7; // Sunday = 0, Monday = 1, etc.
+    final gridStart = yearStart.subtract(Duration(days: daysToSubtract));
+
+    // Find the last Saturday after or on yearEnd
+    int daysToAdd = (6 - yearEnd.weekday % 7) % 7;
+    final gridEnd = yearEnd.add(Duration(days: daysToAdd));
+
+    // Calculate total weeks
+    final totalDays = gridEnd.difference(gridStart).inDays + 1;
+    final totalWeeks = (totalDays / 7).ceil();
+
+    // Build weeks data structure
+    final weeks = <List<DateTime>>[];
+    for (int week = 0; week < totalWeeks; week++) {
+      final weekDays = <DateTime>[];
+      for (int day = 0; day < 7; day++) {
+        final date = gridStart.add(Duration(days: week * 7 + day));
+        weekDays.add(date);
+      }
+      weeks.add(weekDays);
+    }
+
+    // Get month labels and their positions
+    final monthLabels = <MapEntry<int, String>>[];
+    for (int month = 1; month <= 12; month++) {
+      final monthStart = DateTime(_selectedYear, month, 1);
+      final weekIndex = monthStart.difference(gridStart).inDays ~/ 7;
+      if (weekIndex < totalWeeks) {
+        monthLabels.add(MapEntry(weekIndex, DateFormat('MMM').format(monthStart)));
+      }
+    }
+
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Weekday headers
+        // Header: Total contributions + Year selector
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
+          padding: const EdgeInsets.only(bottom: 16),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-                .map((day) => Expanded(
-                      child: Center(
-                        child: Text(
-                          day,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ),
-                    ))
-                .toList(),
-          ),
-        ),
-        const SizedBox(height: 8),
-        // Calendar grid
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 7,
-            childAspectRatio: 1,
-            crossAxisSpacing: 4,
-            mainAxisSpacing: 4,
-          ),
-          itemCount: days.length,
-          itemBuilder: (context, index) {
-            final day = days[index];
-            final normalizedDay = DateTime(day.year, day.month, day.day);
-            final normalizedToday = DateTime(
-              DateTime.now().year,
-              DateTime.now().month,
-              DateTime.now().day,
-            );
-
-            final entry = streakMap[normalizedDay];
-            final isCurrentMonth = day.month == focusedMonth.month;
-            final isFuture = normalizedDay.isAfter(normalizedToday);
-            final isToday = normalizedDay == normalizedToday;
-
-            Color backgroundColor;
-            Color? borderColor;
-
-            if (isFuture) {
-              // Future days - white/transparent
-              backgroundColor = Colors.grey[100]!;
-            } else if (entry != null) {
-              if (entry.success) {
-                // Success - orange/red/yellow gradient based on consistency
-                backgroundColor = Theme.of(context).primaryColor;
-              } else {
-                // Failed - grey
-                backgroundColor = Colors.grey[400]!;
-              }
-            } else {
-              // No alarm set - light grey outline
-              backgroundColor = Colors.white;
-              borderColor = Colors.grey[300];
-            }
-
-            if (isToday) {
-              borderColor = Theme.of(context).primaryColor;
-            }
-
-            return GestureDetector(
-              onTap: isCurrentMonth && !isFuture ? () => onDayTapped(day) : null,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: backgroundColor,
-                  borderRadius: BorderRadius.circular(4),
-                  border: borderColor != null
-                      ? Border.all(color: borderColor, width: isToday ? 2 : 1)
-                      : null,
-                ),
-                child: Center(
-                  child: Text(
-                    '${day.day}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
-                      color: isCurrentMonth
-                          ? (entry?.success == true ? Colors.white : Colors.black87)
-                          : Colors.grey[400],
-                    ),
-                  ),
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '$totalContributions wake-ups in $_selectedYear',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[700],
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-            );
-          },
+              Row(
+                children: [
+                  _YearButton(
+                    year: DateTime.now().year,
+                    isSelected: _selectedYear == DateTime.now().year,
+                    onTap: () => setState(() => _selectedYear = DateTime.now().year),
+                  ),
+                  const SizedBox(width: 8),
+                  _YearButton(
+                    year: DateTime.now().year - 1,
+                    isSelected: _selectedYear == DateTime.now().year - 1,
+                    onTap: () => setState(() => _selectedYear = DateTime.now().year - 1),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        // Month labels
+        Row(
+          children: [
+            const SizedBox(width: 30), // Space for day labels
+            Expanded(
+              child: SizedBox(
+                height: 20,
+                child: Stack(
+                  children: monthLabels.map((entry) {
+                    return Positioned(
+                      left: entry.key * 13.0, // 13 = cell width + spacing
+                      child: Text(
+                        entry.value,
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        // Main grid
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Day labels (Mon, Wed, Fri)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                const SizedBox(height: 13), // Offset for first row
+                _DayLabel('Mon'),
+                _DayLabel(''),
+                _DayLabel('Wed'),
+                _DayLabel(''),
+                _DayLabel('Fri'),
+                _DayLabel(''),
+                const SizedBox(height: 11),
+              ],
+            ),
+            const SizedBox(width: 4),
+            // Grid cells
+            Expanded(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: weeks.map((week) {
+                    return Column(
+                      children: week.map((day) {
+                        final normalizedDay = DateTime(day.year, day.month, day.day);
+                        final normalizedToday = DateTime(
+                          DateTime.now().year,
+                          DateTime.now().month,
+                          DateTime.now().day,
+                        );
+
+                        final entry = streakMap[normalizedDay];
+                        final isCurrentYear = day.year == _selectedYear;
+                        final isFuture = normalizedDay.isAfter(normalizedToday);
+                        final isToday = normalizedDay == normalizedToday;
+
+                        Color backgroundColor;
+
+                        if (!isCurrentYear) {
+                          backgroundColor = Colors.transparent;
+                        } else if (isFuture) {
+                          backgroundColor = Colors.grey[200]!;
+                        } else if (entry != null) {
+                          if (entry.success) {
+                            backgroundColor = Theme.of(context).primaryColor;
+                          } else {
+                            backgroundColor = Colors.grey[400]!;
+                          }
+                        } else {
+                          backgroundColor = Colors.grey[200]!;
+                        }
+
+                        return Padding(
+                          padding: const EdgeInsets.all(1.5),
+                          child: GestureDetector(
+                            onTap: isCurrentYear && !isFuture
+                                ? () => widget.onDayTapped(day)
+                                : null,
+                            child: Tooltip(
+                              message: entry != null
+                                  ? '${entry.success ? "Success" : "Failed"} on ${DateFormat('EEEE, MMMM d, y').format(day)}'
+                                  : 'No alarm on ${DateFormat('EEEE, MMMM d, y').format(day)}',
+                              child: Container(
+                                width: 11,
+                                height: 11,
+                                decoration: BoxDecoration(
+                                  color: backgroundColor,
+                                  borderRadius: BorderRadius.circular(2),
+                                  border: isToday
+                                      ? Border.all(
+                                          color: Theme.of(context).primaryColor,
+                                          width: 1.5,
+                                        )
+                                      : null,
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        // Legend
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Text(
+              'Less',
+              style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+            ),
+            const SizedBox(width: 6),
+            _LegendSquare(color: Colors.grey[200]!),
+            const SizedBox(width: 3),
+            _LegendSquare(color: Colors.grey[400]!),
+            const SizedBox(width: 3),
+            _LegendSquare(color: Theme.of(context).primaryColor.withOpacity(0.6)),
+            const SizedBox(width: 3),
+            _LegendSquare(color: Theme.of(context).primaryColor),
+            const SizedBox(width: 6),
+            Text(
+              'More',
+              style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+            ),
+          ],
         ),
       ],
+    );
+  }
+}
+
+class _YearButton extends StatelessWidget {
+  final int year;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _YearButton({
+    required this.year,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        decoration: BoxDecoration(
+          color: isSelected ? Theme.of(context).primaryColor : Colors.grey[200],
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Text(
+          '$year',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            color: isSelected ? Colors.white : Colors.grey[700],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DayLabel extends StatelessWidget {
+  final String label;
+
+  const _DayLabel(this.label);
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 14,
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 9,
+          color: Colors.grey[600],
+        ),
+      ),
+    );
+  }
+}
+
+class _LegendSquare extends StatelessWidget {
+  final Color color;
+
+  const _LegendSquare({required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 11,
+      height: 11,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(2),
+      ),
     );
   }
 }

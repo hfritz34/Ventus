@@ -17,7 +17,6 @@ class ProfileScreen extends ConsumerStatefulWidget {
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  DateTime _focusedMonth = DateTime.now();
 
   @override
   void initState() {
@@ -37,18 +36,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
     super.dispose();
   }
 
-  void _previousMonth() {
-    setState(() {
-      _focusedMonth = DateTime(_focusedMonth.year, _focusedMonth.month - 1);
-    });
-  }
-
-  void _nextMonth() {
-    setState(() {
-      _focusedMonth = DateTime(_focusedMonth.year, _focusedMonth.month + 1);
-    });
-  }
-
   void _onDayTapped(DateTime day) {
     context.push('/day-detail', extra: day);
   }
@@ -60,8 +47,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
     final longestStreak = ref.watch(streakProvider.notifier).getLongestStreak();
     final successRate = ref.watch(streakProvider.notifier).getSuccessRate();
     final totalSuccessful = ref.watch(streakProvider.notifier).getTotalSuccessful();
-
-    final monthLabel = DateFormat('MMMM yyyy').format(_focusedMonth);
 
     return Scaffold(
       appBar: AppBar(
@@ -115,48 +100,41 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
             ),
           ),
           // Stats cards
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _StatCard(
-                    icon: Icons.local_fire_department,
-                    label: 'Current Streak',
-                    value: '$currentStreak',
-                    color: Colors.orange,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _StatCard(
-                    icon: Icons.emoji_events,
-                    label: 'Longest Streak',
-                    value: '$longestStreak',
-                    color: Colors.amber,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               children: [
                 Expanded(
                   child: _StatCard(
+                    icon: Icons.local_fire_department,
+                    label: 'Streak',
+                    value: '$currentStreak',
+                    color: Colors.orange,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _StatCard(
+                    icon: Icons.emoji_events,
+                    label: 'Longest',
+                    value: '$longestStreak',
+                    color: Colors.amber,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _StatCard(
                     icon: Icons.check_circle,
-                    label: 'Success Rate',
+                    label: 'Success',
                     value: '${successRate.toStringAsFixed(0)}%',
                     color: Colors.green,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 Expanded(
                   child: _StatCard(
                     icon: Icons.calendar_today,
-                    label: 'Total Successful',
+                    label: 'Total',
                     value: '$totalSuccessful',
                     color: Colors.blue,
                   ),
@@ -184,61 +162,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                 // Calendar tab
                 SingleChildScrollView(
                   padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      // Month navigation
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.chevron_left),
-                            onPressed: _previousMonth,
-                          ),
-                          Text(
-                            monthLabel,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.chevron_right),
-                            onPressed: _nextMonth,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      // Calendar
-                      StreakCalendar(
-                        focusedMonth: _focusedMonth,
-                        onDayTapped: _onDayTapped,
-                      ),
-                      const SizedBox(height: 24),
-                      // Legend
-                      Wrap(
-                        spacing: 16,
-                        runSpacing: 8,
-                        children: [
-                          _LegendItem(
-                            color: Theme.of(context).primaryColor,
-                            label: 'Success',
-                          ),
-                          _LegendItem(
-                            color: Colors.grey[400]!,
-                            label: 'Failed',
-                          ),
-                          _LegendItem(
-                            color: Colors.white,
-                            borderColor: Colors.grey[300],
-                            label: 'No alarm',
-                          ),
-                          _LegendItem(
-                            color: Colors.grey[100]!,
-                            label: 'Future',
-                          ),
-                        ],
-                      ),
-                    ],
+                  child: StreakCalendar(
+                    onDayTapped: _onDayTapped,
                   ),
                 ),
                 // Photos tab
@@ -270,29 +195,31 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 2,
+      elevation: 1,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         child: Column(
           children: [
-            Icon(icon, size: 32, color: color),
-            const SizedBox(height: 8),
+            Icon(icon, size: 24, color: color),
+            const SizedBox(height: 6),
             Text(
               value,
               style: TextStyle(
-                fontSize: 24,
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: color,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 2),
             Text(
               label,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 10,
                 color: Colors.grey[600],
               ),
               textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -301,40 +228,3 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-class _LegendItem extends StatelessWidget {
-  final Color color;
-  final Color? borderColor;
-  final String label;
-
-  const _LegendItem({
-    required this.color,
-    this.borderColor,
-    required this.label,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 16,
-          height: 16,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(4),
-            border: borderColor != null ? Border.all(color: borderColor!) : null,
-          ),
-        ),
-        const SizedBox(width: 6),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[700],
-          ),
-        ),
-      ],
-    );
-  }
-}
