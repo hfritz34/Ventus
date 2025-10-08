@@ -16,7 +16,6 @@ class StatsScreen extends ConsumerStatefulWidget {
 
 class _StatsScreenState extends ConsumerState<StatsScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  DateTime _focusedMonth = DateTime.now();
 
   @override
   void initState() {
@@ -36,18 +35,6 @@ class _StatsScreenState extends ConsumerState<StatsScreen> with SingleTickerProv
     super.dispose();
   }
 
-  void _previousMonth() {
-    setState(() {
-      _focusedMonth = DateTime(_focusedMonth.year, _focusedMonth.month - 1);
-    });
-  }
-
-  void _nextMonth() {
-    setState(() {
-      _focusedMonth = DateTime(_focusedMonth.year, _focusedMonth.month + 1);
-    });
-  }
-
   void _onDayTapped(DateTime day) {
     context.push('/day-detail', extra: day);
   }
@@ -58,8 +45,6 @@ class _StatsScreenState extends ConsumerState<StatsScreen> with SingleTickerProv
     final longestStreak = ref.watch(streakProvider.notifier).getLongestStreak();
     final successRate = ref.watch(streakProvider.notifier).getSuccessRate();
     final totalSuccessful = ref.watch(streakProvider.notifier).getTotalSuccessful();
-
-    final monthLabel = DateFormat('MMMM yyyy').format(_focusedMonth);
 
     return Scaffold(
       appBar: AppBar(
@@ -136,61 +121,8 @@ class _StatsScreenState extends ConsumerState<StatsScreen> with SingleTickerProv
                 // Calendar tab
                 SingleChildScrollView(
                   padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      // Month navigation
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.chevron_left),
-                            onPressed: _previousMonth,
-                          ),
-                          Text(
-                            monthLabel,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.chevron_right),
-                            onPressed: _nextMonth,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      // Calendar
-                      StreakCalendar(
-                        focusedMonth: _focusedMonth,
-                        onDayTapped: _onDayTapped,
-                      ),
-                      const SizedBox(height: 24),
-                      // Legend
-                      Wrap(
-                        spacing: 16,
-                        runSpacing: 8,
-                        children: [
-                          _LegendItem(
-                            color: Theme.of(context).primaryColor,
-                            label: 'Success',
-                          ),
-                          _LegendItem(
-                            color: Colors.grey[400]!,
-                            label: 'Failed',
-                          ),
-                          _LegendItem(
-                            color: Colors.white,
-                            borderColor: Colors.grey[300],
-                            label: 'No alarm',
-                          ),
-                          _LegendItem(
-                            color: Colors.grey[100]!,
-                            label: 'Future',
-                          ),
-                        ],
-                      ),
-                    ],
+                  child: StreakCalendar(
+                    onDayTapped: _onDayTapped,
                   ),
                 ),
                 // Photos tab
@@ -253,40 +185,3 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-class _LegendItem extends StatelessWidget {
-  final Color color;
-  final Color? borderColor;
-  final String label;
-
-  const _LegendItem({
-    required this.color,
-    this.borderColor,
-    required this.label,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 16,
-          height: 16,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(4),
-            border: borderColor != null ? Border.all(color: borderColor!) : null,
-          ),
-        ),
-        const SizedBox(width: 6),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[700],
-          ),
-        ),
-      ],
-    );
-  }
-}
