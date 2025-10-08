@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:app/features/streak/providers/streak_provider.dart';
 import 'package:app/features/streak/widgets/streak_calendar.dart';
 import 'package:app/features/streak/widgets/photo_timeline.dart';
-import 'package:app/core/services/storage_service.dart';
+import 'package:app/features/streak/services/streak_service.dart';
 
 class StatsScreen extends ConsumerStatefulWidget {
   const StatsScreen({super.key});
@@ -25,9 +25,8 @@ class _StatsScreenState extends ConsumerState<StatsScreen> with SingleTickerProv
 
     // Load streaks from storage on init
     Future(() {
-      final streakService = ref.read(streakProvider.notifier);
-      final allStreaks = StorageService().alarmBox.parent?.box<dynamic>('streak_entries')?.values.toList();
-      // Note: This is a simple load - you may want to filter by userId
+      final allStreaks = StreakService().getAllStreakEntries();
+      ref.read(streakProvider.notifier).loadStreaks(allStreaks);
     });
   }
 
