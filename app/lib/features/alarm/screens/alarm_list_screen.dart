@@ -55,7 +55,16 @@ class _AlarmListScreenState extends ConsumerState<AlarmListScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Ventus'),
+        title: Row(
+          children: [
+            Image.asset(
+              'assets/images/ventus_transparent.png',
+              height: 32,
+            ),
+            const SizedBox(width: 8),
+            const Text('Ventus'),
+          ],
+        ),
       ),
       body: alarms.isEmpty
           ? const Center(
