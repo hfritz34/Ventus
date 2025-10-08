@@ -90,12 +90,17 @@ class AuthNotifier extends StateNotifier<AuthState> {
       state = state.copyWith(isLoading: false, error: e.message);
 
       // Check if user already exists but needs verification
-      if (e.message.contains('UsernameExistsException') ||
-          e.message.contains('An account with the given email already exists')) {
-        return {'success': false, 'needsVerification': true, 'error': e.message};
+      if (e.message.toLowerCase().contains('username') ||
+          e.message.toLowerCase().contains('user already exists') ||
+          e.message.toLowerCase().contains('already exists')) {
+        return {'success': false, 'needsVerification': true, 'error': 'Account already exists. Please verify your email.'};
       }
 
       return {'success': false, 'needsVerification': false, 'error': e.message};
+    } catch (e) {
+      _logger.e('Unexpected sign up error: $e');
+      state = state.copyWith(isLoading: false, error: e.toString());
+      return {'success': false, 'needsVerification': false, 'error': e.toString()};
     }
   }
 

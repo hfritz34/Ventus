@@ -35,12 +35,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (authState.isAuthenticated && mounted) {
         context.go('/');
       } else if (authState.error != null && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(authState.error!),
-            backgroundColor: Colors.red,
-          ),
-        );
+        final error = authState.error!;
+
+        // Check if user needs to verify email
+        if (error.toLowerCase().contains('not confirmed') ||
+            error.toLowerCase().contains('user is not confirmed')) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Please verify your email first'),
+              backgroundColor: Colors.orange,
+              action: SnackBarAction(
+                label: 'Verify',
+                textColor: Colors.white,
+                onPressed: () {
+                  context.push('/verify-email', extra: _emailController.text.trim());
+                },
+              ),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(error),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }
