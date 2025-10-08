@@ -30,22 +30,25 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
   Future<void> _handleSignup() async {
     if (_formKey.currentState!.validate()) {
-      final success = await ref.read(authProvider.notifier).signUp(
+      final result = await ref.read(authProvider.notifier).signUp(
             email: _emailController.text.trim(),
             password: _passwordController.text,
             username: _usernameController.text.trim(),
           );
 
-      if (success && mounted) {
-        context.push('/verify-email', extra: _emailController.text.trim());
-      } else if (!success && mounted) {
-        final authState = ref.read(authProvider);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(authState.error ?? 'Signup failed'),
-            backgroundColor: Colors.red,
-          ),
-        );
+      if (mounted) {
+        if (result['needsVerification'] == true) {
+          // Either new signup or existing user needing verification
+          context.push('/verify-email', extra: _emailController.text.trim());
+        } else {
+          // Other error
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['error'] ?? 'Signup failed'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }

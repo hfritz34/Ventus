@@ -50,6 +50,30 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
     }
   }
 
+  Future<void> _handleResendCode() async {
+    await ref.read(authProvider.notifier).resendSignUpCode(email: widget.email);
+
+    final authState = ref.read(authProvider);
+
+    if (mounted) {
+      if (authState.error == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Verification code resent!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(authState.error!),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
@@ -121,6 +145,11 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                             )
                           : const Text('Verify Email'),
                     ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextButton(
+                    onPressed: authState.isLoading ? null : _handleResendCode,
+                    child: const Text('Didn\'t receive code? Resend'),
                   ),
                 ],
               ),

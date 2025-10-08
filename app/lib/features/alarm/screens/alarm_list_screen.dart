@@ -61,7 +61,7 @@ class _AlarmListScreenState extends ConsumerState<AlarmListScreen> {
               'assets/images/ventus_transparent.png',
               height: 32,
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 4),
             const Text('Ventus'),
           ],
         ),

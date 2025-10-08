@@ -65,7 +65,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  Future<bool> signUp({
+  Future<Map<String, dynamic>> signUp({
     required String email,
     required String password,
     required String username,
@@ -84,11 +84,18 @@ class AuthNotifier extends StateNotifier<AuthState> {
       );
 
       state = state.copyWith(isLoading: false);
-      return true;
+      return {'success': true, 'needsVerification': true};
     } on AuthException catch (e) {
       _logger.e('Sign up error: ${e.message}');
       state = state.copyWith(isLoading: false, error: e.message);
-      return false;
+
+      // Check if user already exists but needs verification
+      if (e.message.contains('UsernameExistsException') ||
+          e.message.contains('An account with the given email already exists')) {
+        return {'success': false, 'needsVerification': true, 'error': e.message};
+      }
+
+      return {'success': false, 'needsVerification': false, 'error': e.message};
     }
   }
 
@@ -175,6 +182,17 @@ class AuthNotifier extends StateNotifier<AuthState> {
       state = state.copyWith(isLoading: false);
     } on AuthException catch (e) {
       _logger.e('Confirm reset password error: ${e.message}');
+      state = state.copyWith(isLoading: false, error: e.message);
+    }
+  }
+
+  Future<void> resendSignUpCode({required String email}) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await Amplify.Auth.resendSignUpCode(username: email);
+      state = state.copyWith(isLoading: false);
+    } on AuthException catch (e) {
+      _logger.e('Resend sign up code error: ${e.message}');
       state = state.copyWith(isLoading: false, error: e.message);
     }
   }
