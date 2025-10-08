@@ -8,6 +8,8 @@ import 'package:app/features/auth/screens/login_screen.dart';
 import 'package:app/features/auth/screens/signup_screen.dart';
 import 'package:app/features/auth/screens/verify_email_screen.dart';
 import 'package:app/features/auth/screens/profile_screen.dart';
+import 'package:app/features/streak/screens/stats_screen.dart';
+import 'package:app/features/streak/screens/day_detail_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/login',
@@ -57,6 +59,19 @@ final appRouter = GoRouter(
       path: '/profile',
       name: 'profile',
       builder: (context, state) => const ProfileScreen(),
+    ),
+    GoRoute(
+      path: '/stats',
+      name: 'stats',
+      builder: (context, state) => const StatsScreen(),
+    ),
+    GoRoute(
+      path: '/day-detail',
+      name: 'day-detail',
+      builder: (context, state) {
+        final date = state.extra as DateTime;
+        return DayDetailScreen(date: date);
+      },
     ),
   ],
 );
