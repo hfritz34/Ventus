@@ -43,13 +43,31 @@ Third-Party Services
 SMS Messaging: Twilio SMS API
 
 📂 Project Structure
-The repository is structured as a monorepo to keep the application and its backend configurations together.
+The repository contains the Flutter application with Amplify managing the backend infrastructure.
 
+```
 Ventus/
-├── app/          # Contains the complete Flutter mobile application.
-├── api/          # Holds the GraphQL schema and related API configurations managed by Amplify.
-├── functions/    # Contains the source code for all AWS Lambda functions.
-└── README.md     # You are here.
+├── app/                                    # Flutter mobile application
+│   ├── lib/                                # Dart source code
+│   │   ├── core/                           # Core services and utilities
+│   │   │   ├── services/                   # Business logic services
+│   │   │   ├── routing/                    # Navigation configuration
+│   │   │   └── constants/                  # App-wide constants
+│   │   ├── features/                       # Feature modules
+│   │   │   ├── alarm/                      # Alarm management
+│   │   │   └── camera/                     # Camera capture
+│   │   └── shared/                         # Shared widgets and models
+│   ├── amplify/                            # Amplify backend configuration
+│   │   └── backend/
+│   │       ├── auth/                       # Amazon Cognito setup
+│   │       ├── storage/                    # S3 bucket configuration
+│   │       ├── api/                        # API Gateway setup
+│   │       └── function/                   # AWS Lambda functions
+│   │           └── verifyPhoto/            # Photo verification with Rekognition + Twilio
+│   ├── assets/                             # Images, logos, fonts
+│   └── pubspec.yaml                        # Flutter dependencies
+└── README.md                               # You are here
+```
 
 
 🚀 Getting Started
