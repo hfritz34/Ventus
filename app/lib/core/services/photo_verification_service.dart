@@ -14,6 +14,7 @@ class PhotoVerificationService {
     required String photoPath,
     required String contactPhone,
     String? userName,
+    String? customMessage,
   }) async {
     try {
       // 1. Upload photo to S3
@@ -37,6 +38,7 @@ class PhotoVerificationService {
         'bucketName': bucketName,
         'contactPhone': contactPhone,
         'userName': userName ?? 'Your friend',
+        if (customMessage != null) 'customMessage': customMessage,
       });
 
       _logger.i('Calling verification API...');

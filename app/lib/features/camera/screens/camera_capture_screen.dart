@@ -69,6 +69,7 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen> {
         photoPath: '', // Empty path signals grace expiration
         contactPhone: alarm.accountabilityContactPhone ?? '',
         userName: userName,
+        customMessage: alarm.customAccountabilityMessage,
       );
     } catch (e) {
       // Log error but continue
@@ -159,6 +160,7 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen> {
         photoPath: imagePath,
         contactPhone: alarm.accountabilityContactPhone ?? '',
         userName: userName,
+        customMessage: alarm.customAccountabilityMessage,
       );
 
       // Hide loading dialog

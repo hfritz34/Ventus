@@ -19,11 +19,13 @@ class _AddAlarmScreenState extends ConsumerState<AddAlarmScreen> {
   final Set<int> _selectedDays = {};
   final _contactNameController = TextEditingController();
   final _contactPhoneController = TextEditingController();
+  final _customMessageController = TextEditingController();
 
   @override
   void dispose() {
     _contactNameController.dispose();
     _contactPhoneController.dispose();
+    _customMessageController.dispose();
     super.dispose();
   }
 
@@ -56,6 +58,9 @@ class _AddAlarmScreenState extends ConsumerState<AddAlarmScreen> {
           : null,
       accountabilityContactPhone: _contactPhoneController.text.isNotEmpty
           ? _contactPhoneController.text
+          : null,
+      customAccountabilityMessage: _customMessageController.text.isNotEmpty
+          ? _customMessageController.text
           : null,
     );
 
@@ -178,6 +183,27 @@ class _AddAlarmScreenState extends ConsumerState<AddAlarmScreen> {
                       border: OutlineInputBorder(),
                     ),
                     keyboardType: TextInputType.phone,
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _customMessageController,
+                    decoration: const InputDecoration(
+                      labelText: 'Custom Message (Optional)',
+                      hintText: 'Use {username} as placeholder',
+                      border: OutlineInputBorder(),
+                      helperText: 'Leave empty for default message',
+                    ),
+                    maxLines: 3,
+                    maxLength: 160,
+                    onChanged: (_) => setState(() {}),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Preview: ${_customMessageController.text.isEmpty ? "{username} missed their Ventus alarm this morning! Time to check in on them 😴" : _customMessageController.text.replaceAll("{username}", "YourName")}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontStyle: FontStyle.italic,
+                          color: Colors.grey[600],
+                        ),
                   ),
                 ],
               ),

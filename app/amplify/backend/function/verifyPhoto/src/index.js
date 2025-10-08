@@ -18,7 +18,7 @@ exports.handler = async (event) => {
 
   try {
     const body = JSON.parse(event.body);
-    const { photoKey, bucketName, contactPhone, userName } = body;
+    const { photoKey, bucketName, contactPhone, userName, customMessage } = body;
 
     // Run Rekognition to detect labels
     const rekognitionParams = {
@@ -58,8 +58,14 @@ exports.handler = async (event) => {
     } else {
       // Send accountability SMS
       if (contactPhone) {
+        // Use custom message if provided, otherwise use default
+        const defaultMessage = `${userName || 'Your friend'} missed their Ventus alarm this morning! Time to check in on them 😴`;
+        const messageBody = customMessage
+          ? customMessage.replace('{username}', userName || 'Your friend')
+          : defaultMessage;
+
         await twilioClient.messages.create({
-          body: `${userName || 'Your friend'} didn't wake up on time this morning! They missed their Ventus alarm. 😴`,
+          body: messageBody,
           from: process.env.TWILIO_PHONE_NUMBER,
           to: contactPhone,
         });

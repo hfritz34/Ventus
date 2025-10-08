@@ -4,8 +4,9 @@ class AppTheme {
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
+      fontFamily: 'Satoshi',
       colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color(0xFF6366F1), // Indigo
+        seedColor: const Color(0xFFFF6B35), // Orange sun theme
         brightness: Brightness.light,
       ),
       appBarTheme: const AppBarTheme(
@@ -32,8 +33,9 @@ class AppTheme {
   static ThemeData get darkTheme {
     return ThemeData(
       useMaterial3: true,
+      fontFamily: 'Satoshi',
       colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color(0xFF6366F1), // Indigo
+        seedColor: const Color(0xFFFF6B35), // Orange sun theme
         brightness: Brightness.dark,
       ),
       appBarTheme: const AppBarTheme(

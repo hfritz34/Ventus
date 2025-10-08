@@ -21,6 +21,7 @@ class _EditAlarmScreenState extends ConsumerState<EditAlarmScreen> {
   late Set<int> _selectedDays;
   late TextEditingController _contactNameController;
   late TextEditingController _contactPhoneController;
+  late TextEditingController _customMessageController;
 
   @override
   void initState() {
@@ -37,12 +38,16 @@ class _EditAlarmScreenState extends ConsumerState<EditAlarmScreen> {
     _contactPhoneController = TextEditingController(
       text: widget.alarm.accountabilityContactPhone ?? '',
     );
+    _customMessageController = TextEditingController(
+      text: widget.alarm.customAccountabilityMessage ?? '',
+    );
   }
 
   @override
   void dispose() {
     _contactNameController.dispose();
     _contactPhoneController.dispose();
+    _customMessageController.dispose();
     super.dispose();
   }
 
@@ -76,6 +81,9 @@ class _EditAlarmScreenState extends ConsumerState<EditAlarmScreen> {
       accountabilityContactPhone: _contactPhoneController.text.isNotEmpty
           ? _contactPhoneController.text
           : null,
+      customAccountabilityMessage: _customMessageController.text.isNotEmpty
+          ? _customMessageController.text
+          : null,
     );
 
     ref.read(alarmProvider.notifier).updateAlarm(updatedAlarm);
@@ -87,6 +95,8 @@ class _EditAlarmScreenState extends ConsumerState<EditAlarmScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final canEdit = widget.alarm.canEdit();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Alarm'),
@@ -94,12 +104,33 @@ class _EditAlarmScreenState extends ConsumerState<EditAlarmScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          if (!canEdit)
+            Card(
+              color: Colors.orange[50],
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Icon(Icons.warning_amber, color: Colors.orange[700]),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Cannot edit alarm within 1 hour of alarm time. You can only toggle it on/off.',
+                        style: TextStyle(color: Colors.orange[900]),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          if (!canEdit) const SizedBox(height: 16),
           Card(
             child: ListTile(
               title: const Text('Alarm Time'),
               subtitle: Text(_selectedTime.format(context)),
               trailing: const Icon(Icons.access_time),
-              onTap: _selectTime,
+              onTap: canEdit ? _selectTime : null,
+              enabled: canEdit,
             ),
           ),
           const SizedBox(height: 16),
@@ -119,9 +150,11 @@ class _EditAlarmScreenState extends ConsumerState<EditAlarmScreen> {
                     max: 30,
                     divisions: 5,
                     label: '$_graceWindowMinutes min',
-                    onChanged: (value) {
-                      setState(() => _graceWindowMinutes = value.toInt());
-                    },
+                    onChanged: canEdit
+                        ? (value) {
+                            setState(() => _graceWindowMinutes = value.toInt());
+                          }
+                        : null,
                   ),
                 ],
               ),
@@ -154,15 +187,17 @@ class _EditAlarmScreenState extends ConsumerState<EditAlarmScreen> {
                         FilterChip(
                           label: Text(day.$2),
                           selected: _selectedDays.contains(day.$1),
-                          onSelected: (selected) {
-                            setState(() {
-                              if (selected) {
-                                _selectedDays.add(day.$1);
-                              } else {
-                                _selectedDays.remove(day.$1);
-                              }
-                            });
-                          },
+                          onSelected: canEdit
+                              ? (selected) {
+                                  setState(() {
+                                    if (selected) {
+                                      _selectedDays.add(day.$1);
+                                    } else {
+                                      _selectedDays.remove(day.$1);
+                                    }
+                                  });
+                                }
+                              : null,
                         ),
                     ],
                   ),
@@ -188,6 +223,7 @@ class _EditAlarmScreenState extends ConsumerState<EditAlarmScreen> {
                       labelText: 'Name',
                       border: OutlineInputBorder(),
                     ),
+                    enabled: canEdit,
                   ),
                   const SizedBox(height: 8),
                   TextField(
@@ -197,6 +233,29 @@ class _EditAlarmScreenState extends ConsumerState<EditAlarmScreen> {
                       border: OutlineInputBorder(),
                     ),
                     keyboardType: TextInputType.phone,
+                    enabled: canEdit,
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _customMessageController,
+                    decoration: const InputDecoration(
+                      labelText: 'Custom Message (Optional)',
+                      hintText: 'Use {username} as placeholder',
+                      border: OutlineInputBorder(),
+                      helperText: 'Leave empty for default message',
+                    ),
+                    maxLines: 3,
+                    maxLength: 160,
+                    enabled: canEdit,
+                    onChanged: (_) => setState(() {}),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Preview: ${_customMessageController.text.isEmpty ? "{username} missed their Ventus alarm this morning! Time to check in on them 😴" : _customMessageController.text.replaceAll("{username}", "YourName")}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontStyle: FontStyle.italic,
+                          color: Colors.grey[600],
+                        ),
                   ),
                 ],
               ),
@@ -204,7 +263,7 @@ class _EditAlarmScreenState extends ConsumerState<EditAlarmScreen> {
           ),
           const SizedBox(height: 24),
           ElevatedButton(
-            onPressed: _saveAlarm,
+            onPressed: canEdit ? _saveAlarm : null,
             child: const Text('Save Changes'),
           ),
         ],

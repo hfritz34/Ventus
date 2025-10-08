@@ -24,6 +24,7 @@ class AlarmAdapter extends TypeAdapter<Alarm> {
       repeatDays: (fields[4] as List).cast<int>(),
       accountabilityContactName: fields[5] as String?,
       accountabilityContactPhone: fields[6] as String?,
+      customAccountabilityMessage: fields[8] as String?,
       createdAt: fields[7] as DateTime?,
     );
   }
@@ -31,7 +32,7 @@ class AlarmAdapter extends TypeAdapter<Alarm> {
   @override
   void write(BinaryWriter writer, Alarm obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(9)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -47,7 +48,9 @@ class AlarmAdapter extends TypeAdapter<Alarm> {
       ..writeByte(6)
       ..write(obj.accountabilityContactPhone)
       ..writeByte(7)
-      ..write(obj.createdAt);
+      ..write(obj.createdAt)
+      ..writeByte(8)
+      ..write(obj.customAccountabilityMessage);
   }
 
   @override
