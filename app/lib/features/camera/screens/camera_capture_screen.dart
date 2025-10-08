@@ -4,20 +4,22 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app/features/camera/services/camera_service.dart';
 import 'package:app/core/services/permission_service.dart';
 import 'package:app/core/services/alarm_trigger_service.dart';
 import 'package:app/core/services/photo_verification_service.dart';
 import 'package:app/core/services/storage_service.dart';
+import 'package:app/features/auth/providers/auth_provider.dart';
 
-class CameraCaptureScreen extends StatefulWidget {
+class CameraCaptureScreen extends ConsumerStatefulWidget {
   const CameraCaptureScreen({super.key});
 
   @override
-  State<CameraCaptureScreen> createState() => _CameraCaptureScreenState();
+  ConsumerState<CameraCaptureScreen> createState() => _CameraCaptureScreenState();
 }
 
-class _CameraCaptureScreenState extends State<CameraCaptureScreen> {
+class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen> {
   CameraController? _controller;
   bool _isLoading = true;
   String? _error;
@@ -51,7 +53,27 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen> {
     });
   }
 
-  void _handleGraceExpired() {
+  Future<void> _handleGraceExpired() async {
+    final alarmId = AlarmTriggerService().activeAlarmId;
+    if (alarmId == null) return;
+
+    try {
+      final alarm = StorageService().getAlarm(alarmId);
+      if (alarm == null) return;
+
+      final authState = ref.read(authProvider);
+      final userName = authState.username ?? 'User';
+
+      // Call Lambda to send accountability message
+      await PhotoVerificationService().verifyPhoto(
+        photoPath: '', // Empty path signals grace expiration
+        contactPhone: alarm.accountabilityContactPhone ?? '',
+        userName: userName,
+      );
+    } catch (e) {
+      // Log error but continue
+    }
+
     AlarmTriggerService().clearActiveAlarm();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -128,11 +150,15 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen> {
         throw Exception('Alarm not found');
       }
 
+      // Get user info from auth provider
+      final authState = ref.read(authProvider);
+      final userName = authState.username ?? 'User';
+
       // Verify photo with Rekognition
       final verificationResult = await PhotoVerificationService().verifyPhoto(
         photoPath: imagePath,
         contactPhone: alarm.accountabilityContactPhone ?? '',
-        userName: 'User', // TODO: Get from Cognito user profile
+        userName: userName,
       );
 
       // Hide loading dialog

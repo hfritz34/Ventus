@@ -65,6 +65,12 @@ class _AlarmListScreenState extends ConsumerState<AlarmListScreen> {
             const Text('Ventus'),
           ],
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person),
+            onPressed: () => context.push('/profile'),
+          ),
+        ],
       ),
       body: alarms.isEmpty
           ? const Center(

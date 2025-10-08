@@ -4,10 +4,32 @@ import 'package:app/features/alarm/screens/add_alarm_screen.dart';
 import 'package:app/features/alarm/screens/edit_alarm_screen.dart';
 import 'package:app/features/alarm/models/alarm.dart';
 import 'package:app/features/camera/screens/camera_capture_screen.dart';
+import 'package:app/features/auth/screens/login_screen.dart';
+import 'package:app/features/auth/screens/signup_screen.dart';
+import 'package:app/features/auth/screens/verify_email_screen.dart';
+import 'package:app/features/auth/screens/profile_screen.dart';
 
 final appRouter = GoRouter(
-  initialLocation: '/',
+  initialLocation: '/login',
   routes: [
+    GoRoute(
+      path: '/login',
+      name: 'login',
+      builder: (context, state) => const LoginScreen(),
+    ),
+    GoRoute(
+      path: '/signup',
+      name: 'signup',
+      builder: (context, state) => const SignupScreen(),
+    ),
+    GoRoute(
+      path: '/verify-email',
+      name: 'verify-email',
+      builder: (context, state) {
+        final email = state.extra as String;
+        return VerifyEmailScreen(email: email);
+      },
+    ),
     GoRoute(
       path: '/',
       name: 'home',
@@ -30,6 +52,11 @@ final appRouter = GoRouter(
       path: '/camera',
       name: 'camera',
       builder: (context, state) => const CameraCaptureScreen(),
+    ),
+    GoRoute(
+      path: '/profile',
+      name: 'profile',
+      builder: (context, state) => const ProfileScreen(),
     ),
   ],
 );

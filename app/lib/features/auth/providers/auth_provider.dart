@@ -1,0 +1,186 @@
+import 'package:amplify_flutter/amplify_flutter.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:logger/logger.dart';
+
+final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
+  return AuthNotifier();
+});
+
+class AuthState {
+  final bool isAuthenticated;
+  final String? userId;
+  final String? email;
+  final String? username;
+  final bool isLoading;
+  final String? error;
+
+  AuthState({
+    this.isAuthenticated = false,
+    this.userId,
+    this.email,
+    this.username,
+    this.isLoading = false,
+    this.error,
+  });
+
+  AuthState copyWith({
+    bool? isAuthenticated,
+    String? userId,
+    String? email,
+    String? username,
+    bool? isLoading,
+    String? error,
+  }) {
+    return AuthState(
+      isAuthenticated: isAuthenticated ?? this.isAuthenticated,
+      userId: userId ?? this.userId,
+      email: email ?? this.email,
+      username: username ?? this.username,
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+    );
+  }
+}
+
+class AuthNotifier extends StateNotifier<AuthState> {
+  AuthNotifier() : super(AuthState()) {
+    _checkAuthStatus();
+  }
+
+  final Logger _logger = Logger();
+
+  Future<void> _checkAuthStatus() async {
+    try {
+      final session = await Amplify.Auth.fetchAuthSession();
+      if (session.isSignedIn) {
+        final user = await Amplify.Auth.getCurrentUser();
+        state = state.copyWith(
+          isAuthenticated: true,
+          userId: user.userId,
+          username: user.username,
+        );
+      }
+    } catch (e) {
+      _logger.e('Error checking auth status: $e');
+    }
+  }
+
+  Future<void> signUp({
+    required String email,
+    required String password,
+    required String username,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final result = await Amplify.Auth.signUp(
+        username: email,
+        password: password,
+        options: SignUpOptions(
+          userAttributes: {
+            AuthUserAttributeKey.email: email,
+            AuthUserAttributeKey.preferredUsername: username,
+          },
+        ),
+      );
+
+      if (result.isSignUpComplete) {
+        state = state.copyWith(isLoading: false);
+      } else {
+        state = state.copyWith(
+          isLoading: false,
+          error: 'Signup incomplete. Please verify your email.',
+        );
+      }
+    } on AuthException catch (e) {
+      _logger.e('Sign up error: ${e.message}');
+      state = state.copyWith(isLoading: false, error: e.message);
+    }
+  }
+
+  Future<void> confirmSignUp({
+    required String email,
+    required String code,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final result = await Amplify.Auth.confirmSignUp(
+        username: email,
+        confirmationCode: code,
+      );
+
+      if (result.isSignUpComplete) {
+        state = state.copyWith(isLoading: false);
+      }
+    } on AuthException catch (e) {
+      _logger.e('Confirm sign up error: ${e.message}');
+      state = state.copyWith(isLoading: false, error: e.message);
+    }
+  }
+
+  Future<void> signIn({
+    required String email,
+    required String password,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final result = await Amplify.Auth.signIn(
+        username: email,
+        password: password,
+      );
+
+      if (result.isSignedIn) {
+        final user = await Amplify.Auth.getCurrentUser();
+        state = state.copyWith(
+          isAuthenticated: true,
+          userId: user.userId,
+          email: email,
+          username: user.username,
+          isLoading: false,
+        );
+      }
+    } on AuthException catch (e) {
+      _logger.e('Sign in error: ${e.message}');
+      state = state.copyWith(isLoading: false, error: e.message);
+    }
+  }
+
+  Future<void> signOut() async {
+    try {
+      await Amplify.Auth.signOut();
+      state = AuthState();
+    } on AuthException catch (e) {
+      _logger.e('Sign out error: ${e.message}');
+      state = state.copyWith(error: e.message);
+    }
+  }
+
+  Future<void> resetPassword({required String email}) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await Amplify.Auth.resetPassword(username: email);
+      state = state.copyWith(isLoading: false);
+    } on AuthException catch (e) {
+      _logger.e('Reset password error: ${e.message}');
+      state = state.copyWith(isLoading: false, error: e.message);
+    }
+  }
+
+  Future<void> confirmResetPassword({
+    required String email,
+    required String newPassword,
+    required String confirmationCode,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await Amplify.Auth.confirmResetPassword(
+        username: email,
+        newPassword: newPassword,
+        confirmationCode: confirmationCode,
+      );
+      state = state.copyWith(isLoading: false);
+    } on AuthException catch (e) {
+      _logger.e('Confirm reset password error: ${e.message}');
+      state = state.copyWith(isLoading: false, error: e.message);
+    }
+  }
+}
