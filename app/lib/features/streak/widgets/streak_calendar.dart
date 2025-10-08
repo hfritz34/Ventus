@@ -17,7 +17,13 @@ class StreakCalendar extends ConsumerStatefulWidget {
 }
 
 class _StreakCalendarState extends ConsumerState<StreakCalendar> {
-  int _selectedYear = DateTime.now().year;
+  late int _selectedYear;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedYear = DateTime.now().year;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +35,24 @@ class _StreakCalendarState extends ConsumerState<StreakCalendar> {
     for (var entry in streaks) {
       final normalizedDate = DateTime(entry.date.year, entry.date.month, entry.date.day);
       streakMap[normalizedDate] = entry;
+    }
+
+    // Get available years from streak data
+    final availableYears = <int>{};
+    for (var entry in streaks) {
+      availableYears.add(entry.date.year);
+    }
+
+    // If no data, show current year
+    if (availableYears.isEmpty) {
+      availableYears.add(DateTime.now().year);
+    }
+
+    final sortedYears = availableYears.toList()..sort((a, b) => b.compareTo(a)); // Descending order
+
+    // Ensure selected year is valid
+    if (!availableYears.contains(_selectedYear)) {
+      _selectedYear = sortedYears.first;
     }
 
     // Calculate the start date (first day of the year, but start on Sunday/Monday)
@@ -86,19 +110,16 @@ class _StreakCalendarState extends ConsumerState<StreakCalendar> {
                 ),
               ),
               Row(
-                children: [
-                  _YearButton(
-                    year: DateTime.now().year,
-                    isSelected: _selectedYear == DateTime.now().year,
-                    onTap: () => setState(() => _selectedYear = DateTime.now().year),
-                  ),
-                  const SizedBox(width: 8),
-                  _YearButton(
-                    year: DateTime.now().year - 1,
-                    isSelected: _selectedYear == DateTime.now().year - 1,
-                    onTap: () => setState(() => _selectedYear = DateTime.now().year - 1),
-                  ),
-                ],
+                children: sortedYears.map((year) {
+                  return Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: _YearButton(
+                      year: year,
+                      isSelected: _selectedYear == year,
+                      onTap: () => setState(() => _selectedYear = year),
+                    ),
+                  );
+                }).toList(),
               ),
             ],
           ),
@@ -225,21 +246,24 @@ class _StreakCalendarState extends ConsumerState<StreakCalendar> {
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
+            _LegendSquare(color: Colors.grey[200]!),
+            const SizedBox(width: 6),
             Text(
-              'Less',
+              'No alarm',
               style: TextStyle(fontSize: 11, color: Colors.grey[600]),
             ),
-            const SizedBox(width: 6),
-            _LegendSquare(color: Colors.grey[200]!),
-            const SizedBox(width: 3),
+            const SizedBox(width: 16),
             _LegendSquare(color: Colors.grey[400]!),
-            const SizedBox(width: 3),
-            _LegendSquare(color: Theme.of(context).primaryColor.withOpacity(0.6)),
-            const SizedBox(width: 3),
+            const SizedBox(width: 6),
+            Text(
+              'Failed',
+              style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+            ),
+            const SizedBox(width: 16),
             _LegendSquare(color: Theme.of(context).primaryColor),
             const SizedBox(width: 6),
             Text(
-              'More',
+              'Success',
               style: TextStyle(fontSize: 11, color: Colors.grey[600]),
             ),
           ],

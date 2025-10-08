@@ -15,25 +15,16 @@ class ProfileScreen extends ConsumerStatefulWidget {
   ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
 
     // Load streaks from storage on init
     Future(() {
       final allStreaks = StreakService().getAllStreakEntries();
       ref.read(streakProvider.notifier).loadStreaks(allStreaks);
     });
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
   }
 
   void _onDayTapped(DateTime day) {
@@ -142,35 +133,27 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
               ],
             ),
           ),
-          const SizedBox(height: 24),
-          // Tabs
-          TabBar(
-            controller: _tabController,
-            labelColor: Theme.of(context).primaryColor,
-            unselectedLabelColor: Colors.grey[600],
-            indicatorColor: Theme.of(context).primaryColor,
-            tabs: const [
-              Tab(text: 'Calendar'),
-              Tab(text: 'Photos'),
-            ],
-          ),
-          // Tab content
+          const SizedBox(height: 16),
+          // Calendar section
           Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                // Calendar tab
-                SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
-                  child: StreakCalendar(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  StreakCalendar(
                     onDayTapped: _onDayTapped,
                   ),
-                ),
-                // Photos tab
-                const SingleChildScrollView(
-                  child: PhotoTimeline(),
-                ),
-              ],
+                  const SizedBox(height: 32),
+                  // Photos section header
+                  Text(
+                    'Wake-Up Photos',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 16),
+                  const PhotoTimeline(),
+                ],
+              ),
             ),
           ),
         ],
