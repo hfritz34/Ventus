@@ -1,14 +1,24 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
+  // Color palette
+  static const Color primaryOrange = Color(0xFFF24C00);
+  static const Color lightOrange = Color(0xFFFC7A1E);
+  static const Color paleOrange = Color(0xFFF9C784);
+  static const Color darkBlue = Color(0xFF485696);
+  static const Color lightGrey = Color(0xFFE7E7E7);
+
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
       fontFamily: 'Satoshi',
       colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color(0xFFFF6B35), // Orange sun theme
+        seedColor: primaryOrange,
+        primary: primaryOrange,
+        secondary: darkBlue,
         brightness: Brightness.light,
       ),
+      primaryColor: primaryOrange,
       appBarTheme: const AppBarTheme(
         centerTitle: true,
         elevation: 0,
@@ -35,9 +45,12 @@ class AppTheme {
       useMaterial3: true,
       fontFamily: 'Satoshi',
       colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color(0xFFFF6B35), // Orange sun theme
+        seedColor: primaryOrange,
+        primary: primaryOrange,
+        secondary: darkBlue,
         brightness: Brightness.dark,
       ),
+      primaryColor: primaryOrange,
       appBarTheme: const AppBarTheme(
         centerTitle: true,
         elevation: 0,

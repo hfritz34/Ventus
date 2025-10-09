@@ -125,11 +125,14 @@ class _StreakCalendarState extends ConsumerState<StreakCalendar> {
           ),
         ),
         // Month labels
-        Row(
-          children: [
-            const SizedBox(width: 30), // Space for day labels
-            Expanded(
-              child: SizedBox(
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const NeverScrollableScrollPhysics(),
+          child: Row(
+            children: [
+              const SizedBox(width: 34), // Space for day labels + spacing
+              SizedBox(
+                width: totalWeeks * 13.0, // Width based on total weeks
                 height: 20,
                 child: Stack(
                   children: monthLabels.map((entry) {
@@ -146,8 +149,8 @@ class _StreakCalendarState extends ConsumerState<StreakCalendar> {
                   }).toList(),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         const SizedBox(height: 4),
         // Main grid

@@ -7,6 +7,7 @@ import 'package:app/features/streak/providers/streak_provider.dart';
 import 'package:app/features/streak/widgets/streak_calendar.dart';
 import 'package:app/features/streak/widgets/photo_timeline.dart';
 import 'package:app/features/streak/services/streak_service.dart';
+import 'package:app/core/constants/app_theme.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -100,7 +101,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     icon: Icons.local_fire_department,
                     label: 'Streak',
                     value: '$currentStreak',
-                    color: Colors.orange,
+                    color: AppTheme.primaryOrange,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -109,7 +110,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     icon: Icons.emoji_events,
                     label: 'Longest',
                     value: '$longestStreak',
-                    color: Colors.amber,
+                    color: AppTheme.lightOrange,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -118,7 +119,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     icon: Icons.check_circle,
                     label: 'Success',
                     value: '${successRate.toStringAsFixed(0)}%',
-                    color: Colors.green,
+                    color: AppTheme.darkBlue,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -127,7 +128,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     icon: Icons.calendar_today,
                     label: 'Total',
                     value: '$totalSuccessful',
-                    color: Colors.blue,
+                    color: AppTheme.paleOrange,
                   ),
                 ),
               ],
