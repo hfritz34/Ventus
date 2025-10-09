@@ -7,10 +7,7 @@ import 'package:app/features/streak/models/streak_entry.dart';
 class StreakCalendar extends ConsumerStatefulWidget {
   final Function(DateTime) onDayTapped;
 
-  const StreakCalendar({
-    super.key,
-    required this.onDayTapped,
-  });
+  const StreakCalendar({super.key, required this.onDayTapped});
 
   @override
   ConsumerState<StreakCalendar> createState() => _StreakCalendarState();
@@ -33,7 +30,11 @@ class _StreakCalendarState extends ConsumerState<StreakCalendar> {
     // Create a map of dates to streak entries for quick lookup
     final streakMap = <DateTime, StreakEntry>{};
     for (var entry in streaks) {
-      final normalizedDate = DateTime(entry.date.year, entry.date.month, entry.date.day);
+      final normalizedDate = DateTime(
+        entry.date.year,
+        entry.date.month,
+        entry.date.day,
+      );
       streakMap[normalizedDate] = entry;
     }
 
@@ -48,48 +49,60 @@ class _StreakCalendarState extends ConsumerState<StreakCalendar> {
       availableYears.add(DateTime.now().year);
     }
 
-    final sortedYears = availableYears.toList()..sort((a, b) => b.compareTo(a)); // Descending order
+    final sortedYears = availableYears.toList()
+      ..sort((a, b) => b.compareTo(a)); // Descending order
 
     // Ensure selected year is valid
     if (!availableYears.contains(_selectedYear)) {
       _selectedYear = sortedYears.first;
     }
 
-    // Calculate the start date (first day of the year, but start on Sunday/Monday)
-    final yearStart = DateTime(_selectedYear, 1, 1);
-    final yearEnd = DateTime(_selectedYear, 12, 31);
+    final today = DateTime.now();
+    final normalizedToday = DateTime(today.year, today.month, today.day);
 
-    // Find the first Sunday before or on yearStart
-    int daysToSubtract = yearStart.weekday % 7; // Sunday = 0, Monday = 1, etc.
-    final gridStart = yearStart.subtract(Duration(days: daysToSubtract));
+    // Calculate grid based on the selected year (GitHub-style)
+    // 1. Define the date range for the selected year
+    final yearStartDate = DateTime(_selectedYear, 1, 1);
 
-    // Find the last Saturday after or on yearEnd
-    int daysToAdd = (6 - yearEnd.weekday % 7) % 7;
-    final gridEnd = yearEnd.add(Duration(days: daysToAdd));
+    // For the current year, end at today. For past years, end at Dec 31.
+    final yearEndDate = _selectedYear == today.year
+        ? normalizedToday
+        : DateTime(_selectedYear, 12, 31);
 
-    // Calculate total weeks
-    final totalDays = gridEnd.difference(gridStart).inDays + 1;
-    final totalWeeks = (totalDays / 7).ceil();
+    // 2. Pad to complete weeks at the START only
+    // Find the Sunday of the week containing January 1st
+    int daysToSunday = yearStartDate.weekday % 7;
+    final gridStart = yearStartDate.subtract(Duration(days: daysToSunday));
 
-    // Build weeks data structure
+    // End at the actual last day (no padding at the end)
+    final gridEnd = yearEndDate;
+
+    // 3. Build weeks data structure
     final weeks = <List<DateTime>>[];
-    for (int week = 0; week < totalWeeks; week++) {
+    DateTime currentDate = gridStart;
+    while (currentDate.isBefore(gridEnd.add(const Duration(days: 1)))) {
       final weekDays = <DateTime>[];
-      for (int day = 0; day < 7; day++) {
-        final date = gridStart.add(Duration(days: week * 7 + day));
-        weekDays.add(date);
+      for (int i = 0; i < 7; i++) {
+        weekDays.add(currentDate);
+        currentDate = currentDate.add(const Duration(days: 1));
       }
       weeks.add(weekDays);
     }
 
-    // Get month labels and their positions
+    // Get month labels and their positions for all months in the visible range
     final monthLabels = <MapEntry<int, String>>[];
-    for (int month = 1; month <= 12; month++) {
-      final monthStart = DateTime(_selectedYear, month, 1);
-      final weekIndex = monthStart.difference(gridStart).inDays ~/ 7;
-      if (weekIndex < totalWeeks) {
-        monthLabels.add(MapEntry(weekIndex, DateFormat('MMM').format(monthStart)));
+    DateTime currentMonth = DateTime(gridStart.year, gridStart.month, 1);
+    final endMonth = DateTime(gridEnd.year, gridEnd.month, 1);
+
+    while (currentMonth.isBefore(endMonth) || currentMonth == endMonth) {
+      final weekIndex = currentMonth.difference(gridStart).inDays ~/ 7;
+      if (weekIndex >= 0 && weekIndex < weeks.length) {
+        monthLabels.add(
+          MapEntry(weekIndex, DateFormat('MMM').format(currentMonth)),
+        );
       }
+      // Move to next month
+      currentMonth = DateTime(currentMonth.year, currentMonth.month + 1, 1);
     }
 
     return Column(
@@ -101,12 +114,24 @@ class _StreakCalendarState extends ConsumerState<StreakCalendar> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                '$totalContributions wake-ups in $_selectedYear',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[700],
-                  fontWeight: FontWeight.w500,
+              ShaderMask(
+                shaderCallback: (bounds) => const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0xFFF9C784), // Pale peachy orange
+                    Color(0xFFFC7A1E), // Vibrant orange
+                    Color(0xFFF24C00), // Rich reddish-orange
+                  ],
+                ).createShader(bounds),
+                child: Text(
+                  '$totalContributions wake-ups in $_selectedYear',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color:
+                        Colors.white, // Base color (will be masked by gradient)
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
               Row(
@@ -124,132 +149,136 @@ class _StreakCalendarState extends ConsumerState<StreakCalendar> {
             ],
           ),
         ),
-        // Month labels
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          physics: const NeverScrollableScrollPhysics(),
-          child: Row(
-            children: [
-              const SizedBox(width: 34), // Space for day labels + spacing
-              SizedBox(
-                width: totalWeeks * 13.0, // Width based on total weeks
-                height: 20,
-                child: Stack(
-                  children: monthLabels.map((entry) {
-                    return Positioned(
-                      left: entry.key * 13.0, // 13 = cell width + spacing
-                      child: Text(
-                        entry.value,
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 4),
-        // Main grid
+        // Main grid with month labels
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Day labels (Mon, Wed, Fri)
+            // Day labels (Mon, Wed, Fri) - Fixed on left
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                const SizedBox(height: 13), // Offset for first row
+                const SizedBox(height: 20), // Space for month labels
+                const SizedBox(height: 4),
+                const SizedBox(height: 15), // Offset for first row
                 _DayLabel('Mon'),
                 _DayLabel(''),
                 _DayLabel('Wed'),
                 _DayLabel(''),
                 _DayLabel('Fri'),
                 _DayLabel(''),
-                const SizedBox(height: 11),
+                const SizedBox(height: 15),
               ],
             ),
             const SizedBox(width: 4),
-            // Grid cells
+            // Scrollable area with month labels and grid
             Expanded(
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                child: Row(
+                reverse: true, // Start at the end (most recent)
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: weeks.map((week) {
-                    return Column(
-                      children: week.map((day) {
-                        final normalizedDay = DateTime(day.year, day.month, day.day);
-                        final normalizedToday = DateTime(
-                          DateTime.now().year,
-                          DateTime.now().month,
-                          DateTime.now().day,
-                        );
+                  children: [
+                    // Month labels
+                    SizedBox(
+                      height: 20,
+                      child: Row(
+                        children: List.generate(weeks.length, (index) {
+                          // Find if this week index has a month label
+                          final monthEntry = monthLabels.firstWhere(
+                            (entry) => entry.key == index,
+                            orElse: () => const MapEntry(-1, ''),
+                          );
 
-                        final yearStart = DateTime(_selectedYear, 1, 1);
-                        final yearEnd = DateTime(_selectedYear, 12, 31);
+                          return SizedBox(
+                            width: 17.0, // Same as cell width + padding
+                            child: monthEntry.key != -1
+                                ? Text(
+                                    monthEntry.value,
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: Colors.grey[600],
+                                    ),
+                                  )
+                                : const SizedBox.shrink(),
+                          );
+                        }),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    // Grid cells
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: weeks.map((week) {
+                        return Column(
+                          children: week.map((day) {
+                            final normalizedDay = DateTime(
+                              day.year,
+                              day.month,
+                              day.day,
+                            );
 
-                        // Check if this is a padding day (outside the actual year range)
-                        final isPaddingDay = normalizedDay.isBefore(yearStart) || normalizedDay.isAfter(yearEnd);
+                            // Don't render future dates at all
+                            if (normalizedDay.isAfter(gridEnd)) {
+                              return const SizedBox.shrink();
+                            }
 
-                        final entry = streakMap[normalizedDay];
-                        final isFuture = normalizedDay.isAfter(normalizedToday);
-                        final isToday = normalizedDay == normalizedToday && !isPaddingDay;
+                            final entry = streakMap[normalizedDay];
+                            final isPaddingDay = day.year != _selectedYear;
+                            final isToday = normalizedDay == normalizedToday;
 
-                        Color backgroundColor;
+                            Color backgroundColor;
 
-                        if (isPaddingDay) {
-                          // Padding days - default background, non-interactive
-                          backgroundColor = Colors.grey[200]!;
-                        } else if (isFuture) {
-                          // Future days within the year
-                          backgroundColor = Colors.grey[200]!;
-                        } else if (entry != null) {
-                          // Days with data
-                          if (entry.success) {
-                            backgroundColor = Theme.of(context).primaryColor;
-                          } else {
-                            backgroundColor = Colors.grey[400]!;
-                          }
-                        } else {
-                          // Past days with no alarm set
-                          backgroundColor = Colors.grey[200]!;
-                        }
+                            if (isPaddingDay) {
+                              // Padding days at the start (before Jan 1)
+                              backgroundColor = Colors.grey[100]!;
+                            } else if (entry != null) {
+                              // Days with alarm data
+                              if (entry.success) {
+                                backgroundColor = Theme.of(
+                                  context,
+                                ).primaryColor;
+                              } else {
+                                backgroundColor = Colors.grey[400]!;
+                              }
+                            } else {
+                              // Past days with no alarm set
+                              backgroundColor = Colors.grey[200]!;
+                            }
 
-                        return Padding(
-                          padding: const EdgeInsets.all(1.5),
-                          child: GestureDetector(
-                            onTap: !isPaddingDay && !isFuture
-                                ? () => widget.onDayTapped(day)
-                                : null,
-                            child: Tooltip(
-                              message: isPaddingDay
-                                  ? ''
-                                  : entry != null
+                            return Padding(
+                              padding: const EdgeInsets.all(2.0),
+                              child: GestureDetector(
+                                onTap: !isPaddingDay
+                                    ? () => widget.onDayTapped(day)
+                                    : null,
+                                child: Tooltip(
+                                  message: entry != null
                                       ? '${entry.success ? "Success" : "Failed"} on ${DateFormat('EEEE, MMMM d, y').format(day)}'
                                       : 'No alarm on ${DateFormat('EEEE, MMMM d, y').format(day)}',
-                              child: Container(
-                                width: 11,
-                                height: 11,
-                                decoration: BoxDecoration(
-                                  color: backgroundColor,
-                                  borderRadius: BorderRadius.circular(2),
-                                  border: isToday
-                                      ? Border.all(
-                                          color: Theme.of(context).primaryColor,
-                                          width: 1.5,
-                                        )
-                                      : null,
+                                  child: Container(
+                                    width: 13,
+                                    height: 13,
+                                    decoration: BoxDecoration(
+                                      color: backgroundColor,
+                                      borderRadius: BorderRadius.circular(2),
+                                      border: isToday
+                                          ? Border.all(
+                                              color: Theme.of(
+                                                context,
+                                              ).primaryColor,
+                                              width: 1.5,
+                                            )
+                                          : null,
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
-                          ),
+                            );
+                          }).toList(),
                         );
                       }).toList(),
-                    );
-                  }).toList(),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -329,13 +358,10 @@ class _DayLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 14,
+      height: 17,
       child: Text(
         label,
-        style: TextStyle(
-          fontSize: 9,
-          color: Colors.grey[600],
-        ),
+        style: TextStyle(fontSize: 10, color: Colors.grey[600]),
       ),
     );
   }
@@ -349,8 +375,8 @@ class _LegendSquare extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 11,
-      height: 11,
+      width: 13,
+      height: 13,
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(2),

@@ -5,6 +5,7 @@ import 'package:app/core/routing/app_router.dart';
 import 'package:app/core/services/notification_service.dart';
 import 'package:app/core/services/storage_service.dart';
 import 'package:app/core/services/amplify_service.dart';
+import 'package:app/core/services/alarm_trigger_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,6 +21,11 @@ class VentusApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
+
+    // Set up navigation callback for alarm trigger service
+    AlarmTriggerService().setNavigationCallback((route) {
+      router.push(route);
+    });
 
     return MaterialApp.router(
       title: 'Ventus',

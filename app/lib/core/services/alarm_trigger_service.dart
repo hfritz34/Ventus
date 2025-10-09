@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:logger/logger.dart';
-import 'package:app/core/routing/app_router.dart';
 
 class AlarmTriggerService {
   static final AlarmTriggerService _instance = AlarmTriggerService._internal();
@@ -10,6 +9,11 @@ class AlarmTriggerService {
   final Logger _logger = Logger();
   String? _activeAlarmId;
   DateTime? _graceDeadline;
+  Function(String)? _navigationCallback;
+
+  void setNavigationCallback(Function(String) callback) {
+    _navigationCallback = callback;
+  }
 
   void handleAlarmTrigger(String payload) {
     try {
@@ -22,7 +26,7 @@ class AlarmTriggerService {
 
       _logger.i('Alarm triggered: $alarmId, grace until: $_graceDeadline');
 
-      appRouter.push('/camera');
+      _navigationCallback?.call('/camera');
     } catch (e) {
       _logger.e('Error handling alarm trigger: $e');
     }

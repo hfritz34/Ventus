@@ -54,10 +54,24 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final session = await Amplify.Auth.fetchAuthSession();
       if (session.isSignedIn) {
         final user = await Amplify.Auth.getCurrentUser();
+        final attributes = await Amplify.Auth.fetchUserAttributes();
+
+        String? displayUsername;
+        String? userEmail;
+
+        for (var attr in attributes) {
+          if (attr.userAttributeKey == AuthUserAttributeKey.preferredUsername) {
+            displayUsername = attr.value;
+          } else if (attr.userAttributeKey == AuthUserAttributeKey.email) {
+            userEmail = attr.value;
+          }
+        }
+
         state = state.copyWith(
           isAuthenticated: true,
           userId: user.userId,
-          username: user.username,
+          username: displayUsername,
+          email: userEmail,
         );
       }
     } catch (e) {
@@ -137,11 +151,21 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
       if (result.isSignedIn) {
         final user = await Amplify.Auth.getCurrentUser();
+        final attributes = await Amplify.Auth.fetchUserAttributes();
+
+        String? displayUsername;
+
+        for (var attr in attributes) {
+          if (attr.userAttributeKey == AuthUserAttributeKey.preferredUsername) {
+            displayUsername = attr.value;
+          }
+        }
+
         state = state.copyWith(
           isAuthenticated: true,
           userId: user.userId,
           email: email,
-          username: user.username,
+          username: displayUsername,
           isLoading: false,
         );
       }
