@@ -3,17 +3,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:app/features/auth/providers/auth_provider.dart';
 
-class SignupScreen extends ConsumerStatefulWidget {
-  const SignupScreen({super.key});
+class ResetPasswordScreen extends ConsumerStatefulWidget {
+  final String email;
+
+  const ResetPasswordScreen({super.key, required this.email});
 
   @override
-  ConsumerState<SignupScreen> createState() => _SignupScreenState();
+  ConsumerState<ResetPasswordScreen> createState() =>
+      _ResetPasswordScreenState();
 }
 
-class _SignupScreenState extends ConsumerState<SignupScreen> {
+class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _usernameController = TextEditingController();
+  final _codeController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
@@ -21,32 +23,39 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
   @override
   void dispose() {
-    _emailController.dispose();
-    _usernameController.dispose();
+    _codeController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
   }
 
-  Future<void> _handleSignup() async {
+  Future<void> _handleResetPassword() async {
     if (_formKey.currentState!.validate()) {
-      final result = await ref
+      await ref
           .read(authProvider.notifier)
-          .signUp(
-            email: _emailController.text.trim(),
-            password: _passwordController.text,
-            username: _usernameController.text.trim(),
+          .confirmResetPassword(
+            email: widget.email,
+            newPassword: _passwordController.text,
+            confirmationCode: _codeController.text.trim(),
           );
 
+      final authState = ref.read(authProvider);
+
       if (mounted) {
-        if (result['needsVerification'] == true) {
-          // Either new signup or existing user needing verification
-          context.push('/verify-email', extra: _emailController.text.trim());
+        if (authState.error == null) {
+          // Success
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Password reset successful! Please login.'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          context.go('/login');
         } else {
-          // Other error
+          // Show error
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result['error'] ?? 'Signup failed'),
+              content: Text(authState.error!),
               backgroundColor: Colors.red,
             ),
           );
@@ -60,14 +69,16 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     final authState = ref.watch(authProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Create Account')),
+      appBar: AppBar(title: const Text('Reset Password')),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
                   Transform.translate(
                     offset: const Offset(30, 0),
                     child: Row(
@@ -93,39 +104,26 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Check your email for the reset code',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyLarge?.copyWith(color: Colors.grey[600]),
+                    textAlign: TextAlign.center,
+                  ),
                   const SizedBox(height: 32),
                   TextFormField(
-                    controller: _usernameController,
+                    controller: _codeController,
+                    keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
-                      labelText: 'Username',
+                      labelText: 'Verification Code',
                       border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.person),
+                      prefixIcon: Icon(Icons.verified_user),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter a username';
-                      }
-                      if (value.length < 3) {
-                        return 'Username must be at least 3 characters';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.email),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your email';
-                      }
-                      if (!value.contains('@')) {
-                        return 'Please enter a valid email';
+                        return 'Please enter the verification code';
                       }
                       return null;
                     },
@@ -135,7 +133,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     controller: _passwordController,
                     obscureText: _obscurePassword,
                     decoration: InputDecoration(
-                      labelText: 'Password',
+                      labelText: 'New Password',
                       border: const OutlineInputBorder(),
                       prefixIcon: const Icon(Icons.lock),
                       suffixIcon: IconButton(
@@ -153,7 +151,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter a password';
+                        return 'Please enter a new password';
                       }
                       if (value.length < 8) {
                         return 'Password must be at least 8 characters';
@@ -166,7 +164,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     controller: _confirmPasswordController,
                     obscureText: _obscureConfirmPassword,
                     decoration: InputDecoration(
-                      labelText: 'Confirm Password',
+                      labelText: 'Confirm New Password',
                       border: const OutlineInputBorder(),
                       prefixIcon: const Icon(Icons.lock),
                       suffixIcon: IconButton(
@@ -197,22 +195,25 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     width: double.infinity,
                     height: 50,
                     child: ElevatedButton(
-                      onPressed: authState.isLoading ? null : _handleSignup,
+                      onPressed: authState.isLoading
+                          ? null
+                          : _handleResetPassword,
                       child: authState.isLoading
                           ? const SizedBox(
                               height: 20,
                               width: 20,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : const Text('Sign Up'),
+                          : const Text('Reset Password'),
                     ),
                   ),
                   const SizedBox(height: 16),
                   TextButton(
-                    onPressed: () => context.pop(),
-                    child: const Text('Already have an account? Login'),
+                    onPressed: () => context.go('/login'),
+                    child: const Text('Back to Login'),
                   ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

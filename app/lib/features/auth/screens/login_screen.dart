@@ -10,36 +10,72 @@ class LoginScreen extends ConsumerStatefulWidget {
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends ConsumerState<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _hasError = false;
+  AnimationController? _shakeController;
+  Animation<double>? _shakeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _shakeController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+
+    // Create a custom shake animation that goes back and forth
+    _shakeAnimation = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.0), weight: 1),
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: -1.0), weight: 2),
+      TweenSequenceItem(tween: Tween(begin: -1.0, end: 1.0), weight: 2),
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: -1.0), weight: 2),
+      TweenSequenceItem(tween: Tween(begin: -1.0, end: 0.0), weight: 1),
+    ]).animate(
+      CurvedAnimation(
+        parent: _shakeController!,
+        curve: Curves.linear,
+      ),
+    );
+  }
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _shakeController?.dispose();
     super.dispose();
+  }
+
+  void _playShakeAnimation() {
+    _shakeController?.reset();
+    _shakeController?.forward();
   }
 
   Future<void> _handleLogin() async {
     if (_formKey.currentState!.validate()) {
-      await ref
-          .read(authProvider.notifier)
-          .signIn(
-            email: _emailController.text.trim(),
-            password: _passwordController.text,
-          );
+      // Clear any previous error state
+      setState(() => _hasError = false);
 
-      final authState = ref.read(authProvider);
+      // The error handling is done via ref.listen in the build method
+      await ref.read(authProvider.notifier).signIn(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+    }
+  }
 
-      if (authState.isAuthenticated && mounted) {
-        context.go('/');
-      } else if (authState.error != null && mounted) {
-        final error = authState.error!;
-
+  @override
+  Widget build(BuildContext context) {
+    ref.listen<AuthState>(authProvider, (previous, next) {
+      // Only handle errors when they appear (not on initial load)
+      if (previous != null && next.error != null && previous.error != next.error) {
         // Check if user needs to verify email
+        final error = next.error!;
         if (error.toLowerCase().contains('not confirmed') ||
             error.toLowerCase().contains('user is not confirmed')) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -59,28 +95,49 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ),
           );
         } else {
+          // Handle incorrect credentials - trigger error state and animation
+          setState(() {
+            _hasError = true;
+          });
+
+          _playShakeAnimation();
+
+          // Clear password after a brief delay
+          Future.delayed(const Duration(milliseconds: 100), () {
+            if (mounted) {
+              _passwordController.clear();
+            }
+          });
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(error), backgroundColor: Colors.red),
           );
         }
       }
-    }
-  }
 
-  @override
-  Widget build(BuildContext context) {
+      // Navigate to home on successful authentication
+      if (next.isAuthenticated && previous?.isAuthenticated == false) {
+        context.go('/');
+      }
+    });
+
     final authState = ref.watch(authProvider);
 
     return Scaffold(
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight - 48,
+                ),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
                   Transform.translate(
                     offset: const Offset(30, 0),
                     child: Row(
@@ -116,51 +173,104 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 28),
-                  TextFormField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.email),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your email';
-                      }
-                      if (!value.contains('@')) {
-                        return 'Please enter a valid email';
-                      }
-                      return null;
+                  AnimatedBuilder(
+                    animation: _shakeAnimation ?? const AlwaysStoppedAnimation(0),
+                    builder: (context, child) {
+                      return Transform.translate(
+                        offset: Offset(_shakeAnimation?.value ?? 0, 0),
+                        child: child,
+                      );
                     },
+                    child: TextFormField(
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: InputDecoration(
+                        labelText: 'Email',
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: _hasError ? Colors.red : Colors.grey,
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: _hasError ? Colors.red : Colors.grey,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: _hasError ? Colors.red : Theme.of(context).primaryColor,
+                          ),
+                        ),
+                        prefixIcon: Icon(
+                          Icons.email,
+                          color: _hasError ? Colors.red : null,
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your email';
+                        }
+                        if (!value.contains('@')) {
+                          return 'Please enter a valid email';
+                        }
+                        return null;
+                      },
+                    ),
                   ),
                   const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _passwordController,
-                    obscureText: _obscurePassword,
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      border: const OutlineInputBorder(),
-                      prefixIcon: const Icon(Icons.lock),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility
-                              : Icons.visibility_off,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your password';
-                      }
-                      return null;
+                  AnimatedBuilder(
+                    animation: _shakeAnimation ?? const AlwaysStoppedAnimation(0),
+                    builder: (context, child) {
+                      return Transform.translate(
+                        offset: Offset(_shakeAnimation?.value ?? 0, 0),
+                        child: child,
+                      );
                     },
+                    child: TextFormField(
+                      controller: _passwordController,
+                      obscureText: _obscurePassword,
+                      decoration: InputDecoration(
+                        labelText: 'Password',
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: _hasError ? Colors.red : Colors.grey,
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: _hasError ? Colors.red : Colors.grey,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: _hasError ? Colors.red : Theme.of(context).primaryColor,
+                          ),
+                        ),
+                        prefixIcon: Icon(
+                          Icons.lock,
+                          color: _hasError ? Colors.red : null,
+                        ),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                            color: _hasError ? Colors.red : null,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your password';
+                        }
+                        return null;
+                      },
+                    ),
                   ),
                   const SizedBox(height: 24),
                   SizedBox(
@@ -186,10 +296,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     onPressed: () => context.push('/forgot-password'),
                     child: const Text('Forgot password?'),
                   ),
-                ],
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ),
+            );
+          },
         ),
       ),
     );

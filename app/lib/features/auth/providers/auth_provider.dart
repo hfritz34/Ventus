@@ -12,6 +12,7 @@ class AuthState {
   final String? email;
   final String? username;
   final bool isLoading;
+  final bool isInitializing;
   final String? error;
 
   AuthState({
@@ -20,6 +21,7 @@ class AuthState {
     this.email,
     this.username,
     this.isLoading = false,
+    this.isInitializing = false,
     this.error,
   });
 
@@ -29,6 +31,7 @@ class AuthState {
     String? email,
     String? username,
     bool? isLoading,
+    bool? isInitializing,
     String? error,
   }) {
     return AuthState(
@@ -37,13 +40,14 @@ class AuthState {
       email: email ?? this.email,
       username: username ?? this.username,
       isLoading: isLoading ?? this.isLoading,
+      isInitializing: isInitializing ?? this.isInitializing,
       error: error,
     );
   }
 }
 
 class AuthNotifier extends StateNotifier<AuthState> {
-  AuthNotifier() : super(AuthState(isLoading: true)) {
+  AuthNotifier() : super(AuthState(isInitializing: true)) {
     _checkAuthStatus();
   }
 
@@ -72,14 +76,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
           userId: user.userId,
           username: displayUsername,
           email: userEmail,
-          isLoading: false,
+          isInitializing: false,
         );
       } else {
-        state = state.copyWith(isLoading: false);
+        state = state.copyWith(isInitializing: false);
       }
     } catch (e) {
       _logger.e('Error checking auth status: $e');
-      state = state.copyWith(isLoading: false);
+      state = state.copyWith(isInitializing: false);
     }
   }
 

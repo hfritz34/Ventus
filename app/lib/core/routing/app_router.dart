@@ -8,6 +8,8 @@ import 'package:app/features/camera/screens/camera_capture_screen.dart';
 import 'package:app/features/auth/screens/login_screen.dart';
 import 'package:app/features/auth/screens/signup_screen.dart';
 import 'package:app/features/auth/screens/verify_email_screen.dart';
+import 'package:app/features/auth/screens/forgot_password_screen.dart';
+import 'package:app/features/auth/screens/reset_password_screen.dart';
 import 'package:app/features/auth/screens/profile_screen.dart';
 import 'package:app/features/auth/screens/settings_screen.dart';
 import 'package:app/features/auth/screens/splash_screen.dart';
@@ -21,29 +23,34 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/',
     redirect: (context, state) {
-      final isLoading = authState.isLoading;
+      final isInitializing = authState.isInitializing;
       final isAuthenticated = authState.isAuthenticated;
       final isGoingToSplash = state.matchedLocation == '/splash';
       final isGoingToLogin = state.matchedLocation == '/login';
       final isGoingToSignup = state.matchedLocation == '/signup';
       final isGoingToVerify = state.matchedLocation == '/verify-email';
+      final isGoingToForgotPassword =
+          state.matchedLocation == '/forgot-password';
+      final isGoingToResetPassword = state.matchedLocation == '/reset-password';
 
-      // Show splash screen while checking auth
-      if (isLoading && !isGoingToSplash) {
+      // Only show splash on initial app load (when going to root)
+      if (isInitializing && state.matchedLocation == '/') {
         return '/splash';
       }
 
       // Once loaded, redirect away from splash
-      if (!isLoading && isGoingToSplash) {
+      if (!isInitializing && isGoingToSplash) {
         return isAuthenticated ? '/' : '/login';
       }
 
       // If not authenticated and not going to auth screens, redirect to login
-      if (!isLoading &&
+      if (!isInitializing &&
           !isAuthenticated &&
           !isGoingToLogin &&
           !isGoingToSignup &&
-          !isGoingToVerify) {
+          !isGoingToVerify &&
+          !isGoingToForgotPassword &&
+          !isGoingToResetPassword) {
         return '/login';
       }
 
@@ -77,6 +84,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final email = state.extra as String;
           return VerifyEmailScreen(email: email);
+        },
+      ),
+      GoRoute(
+        path: '/forgot-password',
+        name: 'forgot-password',
+        builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: '/reset-password',
+        name: 'reset-password',
+        builder: (context, state) {
+          final email = state.extra as String;
+          return ResetPasswordScreen(email: email);
         },
       ),
       GoRoute(

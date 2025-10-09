@@ -125,6 +125,7 @@ class _EditAlarmScreenState extends ConsumerState<EditAlarmScreen> {
             ),
           if (!canEdit) const SizedBox(height: 16),
           Card(
+            color: const Color(0xFFDFDFDF),
             child: ListTile(
               title: const Text('Alarm Time'),
               subtitle: Text(_selectedTime.format(context)),
@@ -135,6 +136,7 @@ class _EditAlarmScreenState extends ConsumerState<EditAlarmScreen> {
           ),
           const SizedBox(height: 16),
           Card(
+            color: const Color(0xFFDFDFDF),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -162,6 +164,7 @@ class _EditAlarmScreenState extends ConsumerState<EditAlarmScreen> {
           ),
           const SizedBox(height: 16),
           Card(
+            color: const Color(0xFFDFDFDF),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -207,6 +210,7 @@ class _EditAlarmScreenState extends ConsumerState<EditAlarmScreen> {
           ),
           const SizedBox(height: 16),
           Card(
+            color: const Color(0xFFDFDFDF),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(

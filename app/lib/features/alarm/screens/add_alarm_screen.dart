@@ -74,13 +74,12 @@ class _AddAlarmScreenState extends ConsumerState<AddAlarmScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Add Alarm'),
-      ),
+      appBar: AppBar(title: const Text('Add Alarm')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           Card(
+            color: const Color(0xFFDFDFDF),
             child: ListTile(
               title: const Text('Alarm Time'),
               subtitle: Text(_selectedTime.format(context)),
@@ -90,6 +89,7 @@ class _AddAlarmScreenState extends ConsumerState<AddAlarmScreen> {
           ),
           const SizedBox(height: 16),
           Card(
+            color: const Color(0xFFDFDFDF),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -115,6 +115,7 @@ class _AddAlarmScreenState extends ConsumerState<AddAlarmScreen> {
           ),
           const SizedBox(height: 16),
           Card(
+            color: const Color(0xFFDFDFDF),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -135,7 +136,7 @@ class _AddAlarmScreenState extends ConsumerState<AddAlarmScreen> {
                         (4, 'Thu'),
                         (5, 'Fri'),
                         (6, 'Sat'),
-                        (7, 'Sun')
+                        (7, 'Sun'),
                       ])
                         FilterChip(
                           label: Text(day.$2),
@@ -158,6 +159,7 @@ class _AddAlarmScreenState extends ConsumerState<AddAlarmScreen> {
           ),
           const SizedBox(height: 16),
           Card(
+            color: const Color(0xFFDFDFDF),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -201,9 +203,9 @@ class _AddAlarmScreenState extends ConsumerState<AddAlarmScreen> {
                   Text(
                     'Preview: ${_customMessageController.text.isEmpty ? "{username} missed their Ventus alarm this morning! Time to check in on them 😴" : _customMessageController.text.replaceAll("{username}", "YourName")}',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          fontStyle: FontStyle.italic,
-                          color: Colors.grey[600],
-                        ),
+                      fontStyle: FontStyle.italic,
+                      color: Colors.grey[600],
+                    ),
                   ),
                 ],
               ),
