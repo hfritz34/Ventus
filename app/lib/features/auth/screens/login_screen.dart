@@ -81,24 +81,41 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Image.asset(
-                    'assets/images/ventus_transparent.png',
-                    height: 160,
-                  ),
-                  Text(
-                    'Ventus',
-                    style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
+                  Transform.translate(
+                    offset: const Offset(30, 0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Ventus',
+                          style: Theme.of(context).textTheme.headlineLarge
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Satoshi',
+                              ),
+                        ),
+                        Transform.translate(
+                          offset: const Offset(-20, 0),
+                          child: Image.asset(
+                            'assets/images/ventus_transparent.png',
+                            height: 100,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Wake up accountability',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyLarge?.copyWith(color: Colors.grey[600]),
+                  Transform.translate(
+                    offset: const Offset(0, -20),
+                    child: Text(
+                      'Wake up accountability',
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyLarge?.copyWith(color: Colors.grey[600]),
+                    ),
                   ),
-                  const SizedBox(height: 48),
+                  const SizedBox(height: 28),
                   TextFormField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,

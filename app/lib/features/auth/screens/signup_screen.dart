@@ -69,17 +69,31 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               key: _formKey,
               child: Column(
                 children: [
-                  Image.asset(
-                    'assets/images/ventus_transparent.png',
-                    height: 160,
-                  ),
-                  Text(
-                    'Ventus',
-                    style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
+                  Transform.translate(
+                    offset: const Offset(30, 0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Ventus',
+                          style: Theme.of(context).textTheme.headlineLarge
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Satoshi',
+                              ),
+                        ),
+                        Transform.translate(
+                          offset: const Offset(-20, 0),
+                          child: Image.asset(
+                            'assets/images/ventus_transparent.png',
+                            height: 100,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-
                   const SizedBox(height: 32),
                   TextFormField(
                     controller: _usernameController,
