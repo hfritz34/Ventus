@@ -188,37 +188,48 @@ class _StreakCalendarState extends ConsumerState<StreakCalendar> {
                           DateTime.now().day,
                         );
 
+                        final yearStart = DateTime(_selectedYear, 1, 1);
+                        final yearEnd = DateTime(_selectedYear, 12, 31);
+
+                        // Check if this is a padding day (outside the actual year range)
+                        final isPaddingDay = normalizedDay.isBefore(yearStart) || normalizedDay.isAfter(yearEnd);
+
                         final entry = streakMap[normalizedDay];
-                        final isCurrentYear = day.year == _selectedYear;
                         final isFuture = normalizedDay.isAfter(normalizedToday);
-                        final isToday = normalizedDay == normalizedToday;
+                        final isToday = normalizedDay == normalizedToday && !isPaddingDay;
 
                         Color backgroundColor;
 
-                        if (!isCurrentYear) {
-                          backgroundColor = Colors.transparent;
+                        if (isPaddingDay) {
+                          // Padding days - default background, non-interactive
+                          backgroundColor = Colors.grey[200]!;
                         } else if (isFuture) {
+                          // Future days within the year
                           backgroundColor = Colors.grey[200]!;
                         } else if (entry != null) {
+                          // Days with data
                           if (entry.success) {
                             backgroundColor = Theme.of(context).primaryColor;
                           } else {
                             backgroundColor = Colors.grey[400]!;
                           }
                         } else {
+                          // Past days with no alarm set
                           backgroundColor = Colors.grey[200]!;
                         }
 
                         return Padding(
                           padding: const EdgeInsets.all(1.5),
                           child: GestureDetector(
-                            onTap: isCurrentYear && !isFuture
+                            onTap: !isPaddingDay && !isFuture
                                 ? () => widget.onDayTapped(day)
                                 : null,
                             child: Tooltip(
-                              message: entry != null
-                                  ? '${entry.success ? "Success" : "Failed"} on ${DateFormat('EEEE, MMMM d, y').format(day)}'
-                                  : 'No alarm on ${DateFormat('EEEE, MMMM d, y').format(day)}',
+                              message: isPaddingDay
+                                  ? ''
+                                  : entry != null
+                                      ? '${entry.success ? "Success" : "Failed"} on ${DateFormat('EEEE, MMMM d, y').format(day)}'
+                                      : 'No alarm on ${DateFormat('EEEE, MMMM d, y').format(day)}',
                               child: Container(
                                 width: 11,
                                 height: 11,
