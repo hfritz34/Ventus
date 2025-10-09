@@ -30,7 +30,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
   Future<void> _handleSignup() async {
     if (_formKey.currentState!.validate()) {
-      final result = await ref.read(authProvider.notifier).signUp(
+      final result = await ref
+          .read(authProvider.notifier)
+          .signUp(
             email: _emailController.text.trim(),
             password: _passwordController.text,
             username: _usernameController.text.trim(),
@@ -58,9 +60,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     final authState = ref.watch(authProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Create Account'),
-      ),
+      appBar: AppBar(title: const Text('Create Account')),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -71,8 +71,15 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 children: [
                   Image.asset(
                     'assets/images/ventus_transparent.png',
-                    height: 80,
+                    height: 160,
                   ),
+                  Text(
+                    'Ventus',
+                    style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
                   const SizedBox(height: 32),
                   TextFormField(
                     controller: _usernameController,

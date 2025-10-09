@@ -25,7 +25,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _handleLogin() async {
     if (_formKey.currentState!.validate()) {
-      await ref.read(authProvider.notifier).signIn(
+      await ref
+          .read(authProvider.notifier)
+          .signIn(
             email: _emailController.text.trim(),
             password: _passwordController.text,
           );
@@ -48,17 +50,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 label: 'Verify',
                 textColor: Colors.white,
                 onPressed: () {
-                  context.push('/verify-email', extra: _emailController.text.trim());
+                  context.push(
+                    '/verify-email',
+                    extra: _emailController.text.trim(),
+                  );
                 },
               ),
             ),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(error),
-              backgroundColor: Colors.red,
-            ),
+            SnackBar(content: Text(error), backgroundColor: Colors.red),
           );
         }
       }
@@ -81,21 +83,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 children: [
                   Image.asset(
                     'assets/images/ventus_transparent.png',
-                    height: 120,
+                    height: 160,
                   ),
-                  const SizedBox(height: 8),
                   Text(
                     'Ventus',
                     style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     'Wake up accountability',
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Colors.grey[600],
-                        ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyLarge?.copyWith(color: Colors.grey[600]),
                   ),
                   const SizedBox(height: 48),
                   TextFormField(
