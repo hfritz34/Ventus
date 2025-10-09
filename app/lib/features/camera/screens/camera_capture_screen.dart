@@ -13,12 +13,14 @@ import 'package:app/core/services/storage_service.dart';
 import 'package:app/features/auth/providers/auth_provider.dart';
 import 'package:app/features/streak/models/streak_entry.dart';
 import 'package:app/features/streak/providers/streak_provider.dart';
+import 'package:app/shared/widgets/sun_loading_spinner.dart';
 
 class CameraCaptureScreen extends ConsumerStatefulWidget {
   const CameraCaptureScreen({super.key});
 
   @override
-  ConsumerState<CameraCaptureScreen> createState() => _CameraCaptureScreenState();
+  ConsumerState<CameraCaptureScreen> createState() =>
+      _CameraCaptureScreenState();
 }
 
 class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen> {
@@ -137,19 +139,14 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen> {
     try {
       // Show loading
       if (mounted) {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => const Center(
-            child: CircularProgressIndicator(),
-          ),
-        );
+        SunLoadingOverlay.show(context, message: 'Verifying your photo...');
       }
 
       final image = await _controller!.takePicture();
 
       final directory = await getApplicationDocumentsDirectory();
-      final imagePath = '${directory.path}/${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final imagePath =
+          '${directory.path}/${DateTime.now().millisecondsSinceEpoch}.jpg';
       await File(image.path).copy(imagePath);
 
       // Get alarm details for verification
@@ -225,7 +222,9 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(verificationResult['message'] ?? 'Photo not verified'),
+              content: Text(
+                verificationResult['message'] ?? 'Photo not verified',
+              ),
               backgroundColor: Colors.orange,
               duration: const Duration(seconds: 4),
             ),
@@ -244,10 +243,7 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -276,94 +272,83 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen> {
         foregroundColor: Colors.white,
       ),
       body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(),
-            )
+          ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.error_outline,
-                        color: Colors.red,
-                        size: 64,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        _error!,
-                        style: const TextStyle(color: Colors.white),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 24),
-                      ElevatedButton(
-                        onPressed: () => context.pop(),
-                        child: const Text('Go Back'),
-                      ),
-                    ],
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, color: Colors.red, size: 64),
+                  const SizedBox(height: 16),
+                  Text(
+                    _error!,
+                    style: const TextStyle(color: Colors.white),
+                    textAlign: TextAlign.center,
                   ),
-                )
-              : Stack(
-                  children: [
-                    Center(
-                      child: CameraPreview(_controller!),
-                    ),
-                    if (_remainingTime != null)
-                      Positioned(
-                        top: 16,
-                        left: 0,
-                        right: 0,
-                        child: Center(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 12,
-                            ),
-                            decoration: BoxDecoration(
-                              color: _remainingTime!.inMinutes < 2
-                                  ? Colors.red.withValues(alpha: 0.9)
-                                  : Colors.black.withValues(alpha: 0.7),
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                            child: Text(
-                              'Time remaining: ${_formatDuration(_remainingTime!)}',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () => context.pop(),
+                    child: const Text('Go Back'),
+                  ),
+                ],
+              ),
+            )
+          : Stack(
+              children: [
+                Center(child: CameraPreview(_controller!)),
+                if (_remainingTime != null)
+                  Positioned(
+                    top: 16,
+                    left: 0,
+                    right: 0,
+                    child: Center(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _remainingTime!.inMinutes < 2
+                              ? Colors.red.withValues(alpha: 0.9)
+                              : Colors.black.withValues(alpha: 0.7),
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: Text(
+                          'Time remaining: ${_formatDuration(_remainingTime!)}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(32),
-                        color: Colors.black54,
-                        child: Column(
-                          children: [
-                            const Text(
-                              'Make sure you\'re outdoors and visible',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 24),
-                            FloatingActionButton.large(
-                              onPressed: _takePicture,
-                              child: const Icon(Icons.camera_alt, size: 32),
-                            ),
-                          ],
-                        ),
-                      ),
                     ),
-                  ],
+                  ),
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(32),
+                    color: Colors.black54,
+                    child: Column(
+                      children: [
+                        const Text(
+                          'Make sure you\'re outdoors and visible',
+                          style: TextStyle(color: Colors.white, fontSize: 16),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 24),
+                        FloatingActionButton.large(
+                          onPressed: _takePicture,
+                          child: const Icon(Icons.camera_alt, size: 32),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
+              ],
+            ),
     );
   }
 }

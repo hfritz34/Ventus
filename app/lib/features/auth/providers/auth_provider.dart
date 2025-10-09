@@ -43,7 +43,7 @@ class AuthState {
 }
 
 class AuthNotifier extends StateNotifier<AuthState> {
-  AuthNotifier() : super(AuthState()) {
+  AuthNotifier() : super(AuthState(isLoading: true)) {
     _checkAuthStatus();
   }
 
@@ -72,10 +72,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
           userId: user.userId,
           username: displayUsername,
           email: userEmail,
+          isLoading: false,
         );
+      } else {
+        state = state.copyWith(isLoading: false);
       }
     } catch (e) {
       _logger.e('Error checking auth status: $e');
+      state = state.copyWith(isLoading: false);
     }
   }
 
@@ -86,7 +90,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final result = await Amplify.Auth.signUp(
+      await Amplify.Auth.signUp(
         username: email,
         password: password,
         options: SignUpOptions(
@@ -107,14 +111,22 @@ class AuthNotifier extends StateNotifier<AuthState> {
       if (e.message.toLowerCase().contains('username') ||
           e.message.toLowerCase().contains('user already exists') ||
           e.message.toLowerCase().contains('already exists')) {
-        return {'success': false, 'needsVerification': true, 'error': 'Account already exists. Please verify your email.'};
+        return {
+          'success': false,
+          'needsVerification': true,
+          'error': 'Account already exists. Please verify your email.',
+        };
       }
 
       return {'success': false, 'needsVerification': false, 'error': e.message};
     } catch (e) {
       _logger.e('Unexpected sign up error: $e');
       state = state.copyWith(isLoading: false, error: e.toString());
-      return {'success': false, 'needsVerification': false, 'error': e.toString()};
+      return {
+        'success': false,
+        'needsVerification': false,
+        'error': e.toString(),
+      };
     }
   }
 
@@ -138,10 +150,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  Future<void> signIn({
-    required String email,
-    required String password,
-  }) async {
+  Future<void> signIn({required String email, required String password}) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final result = await Amplify.Auth.signIn(

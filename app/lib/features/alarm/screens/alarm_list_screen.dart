@@ -57,12 +57,8 @@ class _AlarmListScreenState extends ConsumerState<AlarmListScreen> {
       appBar: AppBar(
         title: Row(
           children: [
-            Image.asset(
-              'assets/images/ventus_transparent.png',
-              height: 32,
-            ),
-            const SizedBox(width: 4),
-            const Text('Ventus'),
+            Image.asset('assets/images/ventus_branding_dark.png', height: 32),
+            const SizedBox(width: 8),
           ],
         ),
         actions: [

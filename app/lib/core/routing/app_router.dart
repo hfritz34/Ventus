@@ -10,6 +10,7 @@ import 'package:app/features/auth/screens/signup_screen.dart';
 import 'package:app/features/auth/screens/verify_email_screen.dart';
 import 'package:app/features/auth/screens/profile_screen.dart';
 import 'package:app/features/auth/screens/settings_screen.dart';
+import 'package:app/features/auth/screens/splash_screen.dart';
 import 'package:app/features/auth/providers/auth_provider.dart';
 import 'package:app/features/streak/screens/stats_screen.dart';
 import 'package:app/features/streak/screens/day_detail_screen.dart';
@@ -20,13 +21,29 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/',
     redirect: (context, state) {
+      final isLoading = authState.isLoading;
       final isAuthenticated = authState.isAuthenticated;
+      final isGoingToSplash = state.matchedLocation == '/splash';
       final isGoingToLogin = state.matchedLocation == '/login';
       final isGoingToSignup = state.matchedLocation == '/signup';
       final isGoingToVerify = state.matchedLocation == '/verify-email';
 
+      // Show splash screen while checking auth
+      if (isLoading && !isGoingToSplash) {
+        return '/splash';
+      }
+
+      // Once loaded, redirect away from splash
+      if (!isLoading && isGoingToSplash) {
+        return isAuthenticated ? '/' : '/login';
+      }
+
       // If not authenticated and not going to auth screens, redirect to login
-      if (!isAuthenticated && !isGoingToLogin && !isGoingToSignup && !isGoingToVerify) {
+      if (!isLoading &&
+          !isAuthenticated &&
+          !isGoingToLogin &&
+          !isGoingToSignup &&
+          !isGoingToVerify) {
         return '/login';
       }
 
@@ -39,6 +56,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
+      GoRoute(
+        path: '/splash',
+        name: 'splash',
+        builder: (context, state) => const SplashScreen(),
+      ),
       GoRoute(
         path: '/login',
         name: 'login',
