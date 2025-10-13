@@ -238,4 +238,64 @@ class AuthNotifier extends StateNotifier<AuthState> {
       state = state.copyWith(isLoading: false, error: e.message);
     }
   }
+
+  Future<void> updateEmail({required String newEmail}) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await Amplify.Auth.updateUserAttribute(
+        userAttributeKey: AuthUserAttributeKey.email,
+        value: newEmail,
+      );
+      state = state.copyWith(isLoading: false, email: newEmail);
+    } on AuthException catch (e) {
+      _logger.e('Update email error: ${e.message}');
+      state = state.copyWith(isLoading: false, error: e.message);
+      rethrow;
+    }
+  }
+
+  Future<void> confirmEmailUpdate({required String confirmationCode}) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await Amplify.Auth.confirmUserAttribute(
+        userAttributeKey: AuthUserAttributeKey.email,
+        confirmationCode: confirmationCode,
+      );
+      state = state.copyWith(isLoading: false);
+    } on AuthException catch (e) {
+      _logger.e('Confirm email update error: ${e.message}');
+      state = state.copyWith(isLoading: false, error: e.message);
+      rethrow;
+    }
+  }
+
+  Future<void> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await Amplify.Auth.updatePassword(
+        oldPassword: oldPassword,
+        newPassword: newPassword,
+      );
+      state = state.copyWith(isLoading: false);
+    } on AuthException catch (e) {
+      _logger.e('Change password error: ${e.message}');
+      state = state.copyWith(isLoading: false, error: e.message);
+      rethrow;
+    }
+  }
+
+  Future<void> deleteAccount() async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await Amplify.Auth.deleteUser();
+      state = AuthState();
+    } on AuthException catch (e) {
+      _logger.e('Delete account error: ${e.message}');
+      state = state.copyWith(isLoading: false, error: e.message);
+      rethrow;
+    }
+  }
 }
