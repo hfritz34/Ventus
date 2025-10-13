@@ -10,7 +10,12 @@ const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_A
 
 const OUTDOOR_LABELS = [
   'Outdoors', 'Nature', 'Sky', 'Cloud', 'Tree', 'Building',
-  'Street', 'Road', 'Grass', 'Plant', 'Flower', 'Garden'
+  'Street', 'Road', 'Grass', 'Plant', 'Flower', 'Garden',
+  'Park', 'Sun', 'Sunlight', 'Daylight', 'Morning', 'Dawn',
+  'Landscape', 'Mountain', 'Hill', 'Field', 'Lawn', 'Yard',
+  'Sidewalk', 'Pavement', 'Path', 'Trail', 'Patio', 'Deck',
+  'Forest', 'Woods', 'Foliage', 'Vegetation', 'Shrub', 'Bush',
+  'Architecture', 'Urban', 'Suburban', 'City', 'Town', 'House'
 ];
 
 exports.handler = async (event) => {
@@ -28,8 +33,8 @@ exports.handler = async (event) => {
           Name: photoKey,
         },
       },
-      MaxLabels: 20,
-      MinConfidence: 70,
+      MaxLabels: 30,
+      MinConfidence: 60,
     };
 
     const rekognitionCommand = new DetectLabelsCommand(rekognitionParams);
@@ -37,10 +42,14 @@ exports.handler = async (event) => {
 
     console.log('Rekognition labels:', JSON.stringify(rekognitionResponse.Labels));
 
-    // Check if any outdoor labels are detected
-    const isOutdoor = rekognitionResponse.Labels.some(label =>
-      OUTDOOR_LABELS.includes(label.Name) && label.Confidence > 70
+    // Multi-factor outdoor detection: require at least 2 outdoor labels with >60% confidence
+    const outdoorMatches = rekognitionResponse.Labels.filter(label =>
+      OUTDOOR_LABELS.includes(label.Name) && label.Confidence > 60
     );
+
+    const isOutdoor = outdoorMatches.length >= 2;
+
+    console.log(`Found ${outdoorMatches.length} outdoor labels:`, outdoorMatches.map(l => `${l.Name} (${l.Confidence.toFixed(1)}%)`));
 
     if (isOutdoor) {
       return {
