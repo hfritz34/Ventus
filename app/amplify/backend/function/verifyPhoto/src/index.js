@@ -1,7 +1,7 @@
 /* Amplify Params - DO NOT EDIT
 	ENV
 	REGION
-Amplify Params - DO NOT EDIT */const { RekognitionClient, DetectLabelsCommand } = require("@aws-sdk/client-rekognition");
+Amplify Params - DO NOT EDIT */const { RekognitionClient, DetectLabelsCommand, DetectFacesCommand } = require("@aws-sdk/client-rekognition");
 const { S3Client } = require("@aws-sdk/client-s3");
 const twilio = require('twilio');
 
@@ -51,7 +51,24 @@ exports.handler = async (event) => {
 
     console.log(`Found ${outdoorMatches.length} outdoor labels:`, outdoorMatches.map(l => `${l.Name} (${l.Confidence.toFixed(1)}%)`));
 
-    if (isOutdoor) {
+    // Run face detection to verify it's a selfie
+    const faceParams = {
+      Image: {
+        S3Object: {
+          Bucket: bucketName,
+          Name: photoKey,
+        },
+      },
+    };
+
+    const faceCommand = new DetectFacesCommand(faceParams);
+    const faceResponse = await rekognitionClient.send(faceCommand);
+
+    const hasFace = faceResponse.FaceDetails && faceResponse.FaceDetails.length > 0;
+    console.log(`Face detection: ${hasFace ? 'Face found' : 'No face detected'} (${faceResponse.FaceDetails?.length || 0} faces)`);
+
+    // Require both outdoor setting AND a face to be detected
+    if (isOutdoor && hasFace) {
       return {
         statusCode: 200,
         headers: {
@@ -81,6 +98,15 @@ exports.handler = async (event) => {
         console.log('Accountability SMS sent to:', contactPhone);
       }
 
+      // Provide specific feedback
+      let failureMessage = 'Photo verification failed. ';
+      if (!isOutdoor) {
+        failureMessage += 'Photo does not appear to be taken outdoors. ';
+      }
+      if (!hasFace) {
+        failureMessage += 'No face detected - make sure you are visible in the selfie.';
+      }
+
       return {
         statusCode: 200,
         headers: {
@@ -89,7 +115,7 @@ exports.handler = async (event) => {
         },
         body: JSON.stringify({
           success: false,
-          message: 'Photo does not appear to be taken outdoors',
+          message: failureMessage.trim(),
           isOutdoor: false,
         }),
       };
