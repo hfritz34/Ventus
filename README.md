@@ -1,6 +1,4 @@
 <div align="center">
-  <img src="app/assets/images/ventus_branding.png" alt="Ventus Logo" width="400" style="margin-left: 50px;"/>
-
   # Ventus
 
   **Wake-Up Accountability App with AI-Powered Verification**
