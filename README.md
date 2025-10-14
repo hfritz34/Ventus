@@ -1,102 +1,161 @@
-Ventus 🌬️
-Wake-Up Accountability App
+<div align="center">
+  <img src="app/assets/images/ventus_branding.png" alt="Ventus Logo" width="400"/>
 
-Ventus is a mobile application that combines positive habit formation with playful social consequences to help people become consistent early risers. It encourages users to get morning sunlight by verifying they are outside shortly after their alarm, helping to regulate their circadian rhythm naturally.
+  # Ventus
 
-The Problem
-Traditional alarms are easy to dismiss, leading to chronic oversleeping and a lack of external accountability. This disrupts sleep cycles and prevents the formation of a healthy morning routine.
+  **Wake-Up Accountability App with AI-Powered Verification**
 
-The Solution
-Ventus forces users to prove they're awake by taking an outdoor selfie within a set grace period. Our computer vision AI verifies the photo is genuinely taken outside. If a user fails, a lighthearted "accountability text" is automatically sent to a designated friend or family member, creating a powerful and fun accountability loop.
+  [![Flutter](https://img.shields.io/badge/Flutter-3.35.4-02569B?logo=flutter)](https://flutter.dev)
+  [![AWS](https://img.shields.io/badge/AWS-Amplify-FF9900?logo=amazon-aws)](https://aws.amazon.com/amplify/)
+  [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-✨ Core Features
-Customizable Alarms: Set wake-up times and a grace window (5-30 minutes) to get outside.
+</div>
 
-AI Outdoor Verification: Utilizes computer vision to confirm selfies are taken outdoors.
+---
 
-Social Accountability: Automatically sends a pre-defined SMS to a designated partner upon failure.
+## 📖 Overview
 
-Streak Tracking: Motivates users by visualizing their daily and weekly progress.
+Ventus combines habit formation with social accountability to help people become consistent early risers. The app verifies you're actually awake by requiring an outdoor selfie within a customizable grace period—powered by computer vision to ensure authenticity.
 
-User Management: Secure user profiles and settings management.
+**The Problem:** Traditional alarms are too easy to dismiss, leading to chronic oversleeping and disrupted sleep cycles.
 
-Push Notifications: Timely reminders for alarms and verification windows.
+**The Solution:** Take an outdoor selfie to prove you're awake, or face the consequences—a playful accountability text sent to your designated friend or family member.
 
-🛠️ Tech Stack Overview
-This project is a monorepo containing the frontend application and backend infrastructure.
+---
 
-Frontend (Mobile App)
-Backend (Cloud Infrastructure)
-Authentication: Amazon Cognito
+## ✨ Features
 
-Database: Amazon DynamoDB
+- **🔔 Smart Alarms** — Set wake-up times with customizable grace windows (5-30 minutes)
+- **🤖 AI Verification** — Multi-factor outdoor detection using AWS Rekognition with face detection
+- **📱 Social Accountability** — Automatic SMS notifications via Twilio when you fail
+- **🔥 Streak Tracking** — Visualize your daily and weekly progress with calendar views
+- **🔐 Secure Auth** — Amazon Cognito authentication with email verification
+- **⚙️ Account Management** — Change password, update email, and delete account
+- **📊 Stats Dashboard** — Track your success rate and consistency over time
 
-Storage: Amazon S3
+---
 
-Functions: AWS Lambda
+## 🛠️ Tech Stack
 
-Computer Vision: Amazon Rekognition
+### Frontend
+- **Flutter** — Cross-platform mobile framework
+- **Riverpod** — State management
+- **Go Router** — Navigation
+- **Hive** — Local data persistence
 
-API: AWS AppSync (GraphQL)
+### Backend (AWS)
+- **Lambda** — Serverless photo verification functions
+- **Rekognition** — Computer vision for outdoor & face detection
+- **Cognito** — User authentication and management
+- **S3** — Secure photo storage
+- **DynamoDB** — User data and streaks
+- **AppSync** — GraphQL API
 
-Third-Party Services
-SMS Messaging: Twilio SMS API
+### Third-Party
+- **Twilio** — SMS messaging for accountability
 
-📂 Project Structure
-The repository contains the Flutter application with Amplify managing the backend infrastructure.
+---
+
+## 📂 Project Structure
 
 ```
 Ventus/
-├── app/                                    # Flutter mobile application
-│   ├── lib/                                # Dart source code
-│   │   ├── core/                           # Core services and utilities
-│   │   │   ├── services/                   # Business logic services
-│   │   │   ├── routing/                    # Navigation configuration
-│   │   │   └── constants/                  # App-wide constants
-│   │   ├── features/                       # Feature modules
-│   │   │   ├── alarm/                      # Alarm management
-│   │   │   └── camera/                     # Camera capture
-│   │   └── shared/                         # Shared widgets and models
-│   ├── amplify/                            # Amplify backend configuration
+├── app/
+│   ├── lib/
+│   │   ├── core/                    # Services, routing, constants
+│   │   ├── features/                # Feature modules (alarm, auth, camera, streak)
+│   │   └── shared/                  # Shared widgets and models
+│   ├── amplify/
 │   │   └── backend/
-│   │       ├── auth/                       # Amazon Cognito setup
-│   │       ├── storage/                    # S3 bucket configuration
-│   │       ├── api/                        # API Gateway setup
-│   │       └── function/                   # AWS Lambda functions
-│   │           └── verifyPhoto/            # Photo verification with Rekognition + Twilio
-│   ├── assets/                             # Images, logos, fonts
-│   └── pubspec.yaml                        # Flutter dependencies
-└── README.md                               # You are here
+│   │       ├── auth/                # Cognito configuration
+│   │       ├── storage/             # S3 setup
+│   │       └── function/            # Lambda functions
+│   │           └── verifyPhoto/     # Photo verification logic
+│   └── assets/                      # Images, fonts, branding
+└── README.md
 ```
 
+---
 
-🚀 Getting Started
-Follow these instructions to get the project up and running on your local machine for development and testing.
+## 🚀 Getting Started
 
-Prerequisites
-Flutter SDK installed.
+### Prerequisites
 
-AWS Amplify CLI installed and configured (amplify configure).
+- [Flutter SDK](https://flutter.dev/docs/get-started/install) (v3.35.4+)
+- [AWS Amplify CLI](https://docs.amplify.aws/cli/start/install/) configured
+- AWS Account
+- Twilio Account (for SMS)
 
-An AWS Account.
+### Installation
 
-A Twilio Account for SMS messaging.
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/hfritz34/Ventus.git
+   cd Ventus/app
+   ```
 
-Installation & Setup
-Clone the repository:
+2. **Install dependencies**
+   ```bash
+   flutter pub get
+   ```
 
-git clone [https://github.com/hfritz34/Ventus.git](https://github.com/hfritz34/Ventus.git)
-cd Ventus
+3. **Configure Amplify Backend**
+   ```bash
+   amplify pull --appId <YOUR_APP_ID> --envName <YOUR_ENV_NAME>
+   ```
 
+4. **Set up environment variables**
 
-Install frontend dependencies:
+   Add your Twilio credentials to the Lambda function environment variables.
 
-cd app
-flutter pub get
-cd ..
+5. **Run the app**
+   ```bash
+   flutter run
+   ```
 
+---
 
-Initialize Amplify Backend:
-Pull down the cloud backend configuration. You will need to sign into your AWS account.
+## 🏗️ Architecture
 
-amplify pull --appId <YOUR_APP_ID> --envName <YOUR_ENV_NAME>
+### Computer Vision Pipeline
+
+The photo verification system uses a multi-factor approach:
+
+1. **Label Detection** — Scans for 40+ outdoor-related labels (Sky, Outdoors, Tree, Sun, etc.)
+2. **Confidence Scoring** — Requires ≥2 outdoor labels with >60% confidence
+3. **Face Detection** — Verifies a person is visible in the selfie
+4. **Failure Handling** — Sends customizable SMS via Twilio if verification fails
+
+### Data Flow
+
+```
+Mobile App → S3 Upload → Lambda Trigger → Rekognition API →
+Verification Result → Update DynamoDB → Send SMS (if failed) →
+Return to App
+```
+
+---
+
+## 📱 Screenshots
+
+> Coming soon
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+---
+
+## 📧 Contact
+
+**Henry Fritz** — [GitHub](https://github.com/hfritz34)
+
+Project Link: [https://github.com/hfritz34/Ventus](https://github.com/hfritz34/Ventus)
