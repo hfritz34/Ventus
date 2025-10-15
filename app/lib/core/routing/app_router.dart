@@ -12,6 +12,7 @@ import 'package:app/features/auth/screens/forgot_password_screen.dart';
 import 'package:app/features/auth/screens/reset_password_screen.dart';
 import 'package:app/features/auth/screens/profile_screen.dart';
 import 'package:app/features/auth/screens/settings_screen.dart';
+import 'package:app/features/auth/screens/help_screen.dart';
 import 'package:app/features/auth/screens/splash_screen.dart';
 import 'package:app/features/auth/providers/auth_provider.dart';
 import 'package:app/features/streak/screens/stats_screen.dart';
@@ -131,6 +132,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/settings',
         name: 'settings',
         builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: '/help',
+        name: 'help',
+        builder: (context, state) => const HelpScreen(),
       ),
       GoRoute(
         path: '/stats',

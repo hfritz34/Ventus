@@ -71,11 +71,7 @@ class SettingsScreen extends ConsumerWidget {
                   leading: const Icon(Icons.help),
                   title: const Text('Help & Support'),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Coming soon')),
-                    );
-                  },
+                  onTap: () => context.push('/help'),
                 ),
                 const Divider(height: 1),
                 ListTile(
