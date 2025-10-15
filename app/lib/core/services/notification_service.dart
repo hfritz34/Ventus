@@ -3,6 +3,7 @@ import 'package:logger/logger.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:app/core/services/alarm_trigger_service.dart';
+import 'package:app/core/services/notification_settings_service.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -50,6 +51,9 @@ class NotificationService {
     required DateTime scheduledTime,
     String? payload,
   }) async {
+    // Load user notification settings
+    final settings = await NotificationSettingsService().getSettings();
+
     await _notifications.zonedSchedule(
       id,
       title,
@@ -62,14 +66,16 @@ class NotificationService {
           channelDescription: 'Channel for alarm notifications',
           importance: Importance.max,
           priority: Priority.high,
-          playSound: true,
-          enableVibration: true,
+          playSound: settings.soundEnabled,
+          enableVibration: settings.vibrationEnabled,
           fullScreenIntent: true,
+          // Note: Custom sound types would require additional sound files
+          // For now, we just respect the sound on/off setting
         ),
-        iOS: const DarwinNotificationDetails(
+        iOS: DarwinNotificationDetails(
           presentAlert: true,
           presentBadge: true,
-          presentSound: true,
+          presentSound: settings.soundEnabled,
         ),
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
@@ -78,7 +84,7 @@ class NotificationService {
       payload: payload,
     );
 
-    _logger.i('Alarm scheduled for $scheduledTime with id $id');
+    _logger.i('Alarm scheduled for $scheduledTime with id $id (sound: ${settings.soundEnabled}, vibration: ${settings.vibrationEnabled})');
   }
 
   Future<void> cancelAlarm(int id) async {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:app/features/auth/providers/auth_provider.dart';
+import 'package:app/core/providers/notification_settings_provider.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -17,6 +18,13 @@ class SettingsScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => _ChangePasswordDialog(),
+    );
+  }
+
+  void _showNotificationSettings(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (context) => _NotificationSettingsDialog(),
     );
   }
 
@@ -43,11 +51,7 @@ class SettingsScreen extends ConsumerWidget {
                   leading: const Icon(Icons.notifications),
                   title: const Text('Notification Settings'),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Coming soon')),
-                    );
-                  },
+                  onTap: () => _showNotificationSettings(context, ref),
                 ),
                 const Divider(height: 1),
                 ListTile(
@@ -424,6 +428,92 @@ class _ChangePasswordDialogState extends ConsumerState<_ChangePasswordDialog> {
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
               : const Text('Change Password'),
+        ),
+      ],
+    );
+  }
+}
+
+class _NotificationSettingsDialog extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(notificationSettingsProvider);
+
+    return AlertDialog(
+      title: const Text('Notification Settings'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SwitchListTile(
+            title: const Text('Sound'),
+            subtitle: const Text('Play sound for alarms'),
+            value: settings.soundEnabled,
+            onChanged: (value) {
+              ref.read(notificationSettingsProvider.notifier).toggleSound(value);
+            },
+          ),
+          SwitchListTile(
+            title: const Text('Vibration'),
+            subtitle: const Text('Vibrate for alarms'),
+            value: settings.vibrationEnabled,
+            onChanged: (value) {
+              ref.read(notificationSettingsProvider.notifier).toggleVibration(value);
+            },
+          ),
+          const Divider(),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Sound Type',
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+          ),
+          const SizedBox(height: 8),
+          RadioListTile<String>(
+            title: const Text('Default'),
+            value: 'default',
+            groupValue: settings.soundType,
+            onChanged: settings.soundEnabled
+                ? (value) {
+                    if (value != null) {
+                      ref.read(notificationSettingsProvider.notifier).setSoundType(value);
+                    }
+                  }
+                : null,
+          ),
+          RadioListTile<String>(
+            title: const Text('Gentle'),
+            subtitle: const Text('Soft wake-up sound'),
+            value: 'gentle',
+            groupValue: settings.soundType,
+            onChanged: settings.soundEnabled
+                ? (value) {
+                    if (value != null) {
+                      ref.read(notificationSettingsProvider.notifier).setSoundType(value);
+                    }
+                  }
+                : null,
+          ),
+          RadioListTile<String>(
+            title: const Text('Loud'),
+            subtitle: const Text('Maximum volume alarm'),
+            value: 'loud',
+            groupValue: settings.soundType,
+            onChanged: settings.soundEnabled
+                ? (value) {
+                    if (value != null) {
+                      ref.read(notificationSettingsProvider.notifier).setSoundType(value);
+                    }
+                  }
+                : null,
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Done'),
         ),
       ],
     );
