@@ -3,11 +3,9 @@
         {
             "name": "Mac",
             "includePath": [
+                "${workspaceFolder}/**",
                 "${workspaceFolder}/engine/include",
-                "${workspaceFolder}/engine/src",
-                "/usr/local/include",
-                "/opt/homebrew/include",
-                "/opt/homebrew/include/opencv4"
+                "${workspaceFolder}/engine/src"
             ],
             "defines": [],
             "macFrameworkPath": [
