@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
+
 project(ventus_cv_engine VERSION 1.0.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -102,4 +103,3 @@ install(TARGETS ventus_server ventus_cv_core
 )
 
 install(DIRECTORY include/ DESTINATION include)
-
