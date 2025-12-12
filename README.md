@@ -1,5 +1,5 @@
 <p align="center">
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src="app/assets/images/ventus_branding.png" alt="Ventus Logo" width="400"/>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src="app/assets/images/ventus_branding.png" alt="Ventus Logo" width="400"/>
 </p>
 
 <h3 align="center">Real-Time Outdoor Verification Engine</h3>
