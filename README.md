@@ -1,16 +1,17 @@
-<div align="center">
+<p align="center">
   <img src="app/assets/images/ventus_branding.png" alt="Ventus Logo" width="400"/>
+</p>
 
-  <h3>Real-Time Outdoor Verification Engine</h3>
-  <p><strong>High-performance computer vision backend + cross-platform mobile app</strong></p>
+<h3 align="center">Real-Time Outdoor Verification Engine</h3>
+<p align="center"><strong>High-performance computer vision backend + cross-platform mobile app</strong></p>
 
-  [![C++](https://img.shields.io/badge/C++-17-00599C?logo=cplusplus)](https://isocpp.org/)
-  [![TensorFlow Lite](https://img.shields.io/badge/TFLite-2.10-FF6F00?logo=tensorflow)](https://www.tensorflow.org/lite)
-  [![OpenCV](https://img.shields.io/badge/OpenCV-4.5-5C3EE8?logo=opencv)](https://opencv.org/)
-  [![gRPC](https://img.shields.io/badge/gRPC-1.50-244c5a)](https://grpc.io/)
-  [![Flutter](https://img.shields.io/badge/Flutter-3.35-02569B?logo=flutter)](https://flutter.dev)
-
-</div>
+<p align="center">
+  <a href="https://isocpp.org/"><img src="https://img.shields.io/badge/C++-17-00599C?logo=cplusplus" alt="C++"></a>
+  <a href="https://www.tensorflow.org/lite"><img src="https://img.shields.io/badge/TFLite-2.10-FF6F00?logo=tensorflow" alt="TensorFlow Lite"></a>
+  <a href="https://opencv.org/"><img src="https://img.shields.io/badge/OpenCV-4.5-5C3EE8?logo=opencv" alt="OpenCV"></a>
+  <a href="https://grpc.io/"><img src="https://img.shields.io/badge/gRPC-1.50-244c5a" alt="gRPC"></a>
+  <a href="https://flutter.dev"><img src="https://img.shields.io/badge/Flutter-3.35-02569B?logo=flutter" alt="Flutter"></a>
+</p>
 
 ---
 
