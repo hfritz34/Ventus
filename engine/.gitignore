@@ -1,0 +1,27 @@
+# Build artifacts
+build/
+cmake-build-*/
+*.o
+*.a
+*.so
+*.dylib
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Model files (large binaries)
+*.tflite
+!models/.gitkeep
+
+# Generated protobuf files
+*.pb.cc
+*.pb.h
+*_grpc.pb.cc
+*_grpc.pb.h
+
+# OS
+.DS_Store
+
